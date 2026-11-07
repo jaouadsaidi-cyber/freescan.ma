@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Freescan — Aide en ligne</title>
+<link rel="icon" href="../media/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--fond:#060a13;--carte:#0f1828;--trait:rgba(255,255,255,.09);--texte:#eef2f8;--doux:#9aa7bd;--bleu2:#7db4ff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(70% 50% at 80% 0%,rgba(74,143,224,.15),transparent 60%),var(--fond);color:var(--texte);font:16px/1.6 Inter,system-ui,sans-serif;min-height:100vh}
+.env{width:min(1000px,100% - 32px);margin:0 auto;padding:40px 0 70px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:64px}
+header img{height:40px}
+header a{color:var(--doux);font-size:14px;text-decoration:none}
+h1{font:600 clamp(36px,6vw,58px)/1.05 "Space Grotesk",sans-serif;letter-spacing:-.02em;margin-bottom:14px}
+p.chapo{color:var(--doux);max-width:52ch;margin-bottom:46px}
+.grille{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.guide{border-radius:20px;background:var(--carte);border:1px solid var(--trait);overflow:hidden}
+.guide img{width:100%;aspect-ratio:16/8;object-fit:cover;display:block}
+.guide div{padding:20px 22px 22px}
+.guide h2{font:600 24px "Space Grotesk",sans-serif;margin-bottom:12px}
+.langues{display:flex;gap:8px}
+.langues a{flex:1;text-align:center;padding:10px;border-radius:12px;background:rgba(255,255,255,.06);color:var(--texte);text-decoration:none;font-weight:600;font-size:14px;border:1px solid transparent;transition:border-color .2s,background .2s}
+.langues a:hover{border-color:rgba(125,180,255,.6);background:rgba(125,180,255,.1)}
+@media (max-width:640px){.grille{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="env">
+  <header><a href="../"><img src="../media/logo-freescan.png" alt="Freescan"></a><a href="../">← freescan.ma</a></header>
+  <h1>Aide en ligne</h1>
+  <p class="chapo">Le manuel de l'opérateur Freescan, fruit par fruit, avec ses vidéos. C'est le même guide que celui du bouton « Aide » de la machine.</p>
+  <div class="grille">
+    <div class="guide"><img src="tomate-cerise/FR/video/01-accueil.jpg" alt=""><div><h2>Tomate cerise</h2><div class="langues"><a href="tomate-cerise/FR/">Français</a><a href="tomate-cerise/EN/">English</a><a href="tomate-cerise/AR/">العربية</a></div></div></div>
+    <div class="guide"><img src="datte/FR/video/01-accueil.jpg" alt=""><div><h2>Datte</h2><div class="langues"><a href="datte/FR/">Français</a><a href="datte/EN/">English</a><a href="datte/AR/">العربية</a></div></div></div>
+    <div class="guide"><img src="orange/FR/video/01-accueil.jpg" alt=""><div><h2>Orange</h2><div class="langues"><a href="orange/FR/">Français</a><a href="orange/EN/">English</a><a href="orange/AR/">العربية</a></div></div></div>
+    <div class="guide"><img src="myrtille/FR/video/01-accueil.jpg" alt=""><div><h2>Myrtille</h2><div class="langues"><a href="myrtille/FR/">Français</a><a href="myrtille/EN/">English</a><a href="myrtille/AR/">العربية</a></div></div></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html lang="en">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setting up orange sorting</title>
+<!--
+  Guide opérateur du bouton « Aide ». Fichier GÉNÉRÉ par doc/aide/fruits/generer.py : ne pas modifier à la main.
+  Emplacement sur la machine : C:\media\<projet>\document\EN\index.html (vidéos et images dans FR\video et FR\images).
+-->
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font-family: "Segoe UI", Tahoma, Arial, sans-serif; font-size: 19px; line-height: 1.5; color: #26241f; background: #ece6da; }
+a { color: #b0490f; text-decoration: none; }
+
+#entete { position: fixed; top: 0; left: 0; right: 0; height: 64px; background: #1f1d1a; color: #fff; z-index: 10; }
+#entete .marque { float: left; padding: 0 16px 0 20px; line-height: 64px; font-family: Georgia, "Times New Roman", serif; font-size: 24px; }
+#entete .marque span { color: #f08c4a; font-family: Consolas, "Courier New", monospace; font-size: 13px; letter-spacing: 2px; margin-left: 10px; }
+#entete .nav { float: right; padding: 12px 6px 0 0; }
+#entete .langues { float: right; padding: 14px 14px 0 8px; }
+#entete .langues a { display: inline-block; min-width: 34px; height: 36px; line-height: 34px; padding: 0 6px; margin-left: 3px; text-align: center; border-radius: 6px; border: 1px solid #4a463e; color: #cfc8ba; font-size: 15px; font-family: Tahoma, "Segoe UI", Arial, sans-serif; }
+#entete .langues a:hover { color: #fff; border-color: #f08c4a; }
+#entete .langues a.ici { background: #f3efe6; color: #1f1d1a; border-color: #f3efe6; font-weight: 700; }
+#entete .nav a { display: inline-block; height: 40px; line-height: 38px; padding: 0 10px; margin-left: 3px; border-radius: 20px; color: #fff; font-size: 15px; border: 1px solid #4a463e; }
+#entete .nav a:hover, #entete .nav a.actif { background: #d9480f; border-color: #d9480f; }
+
+#contenu { padding: 84px 24px 60px; }
+.page { max-width: 1000px; margin: 0 auto; }
+section { background: #fbf9f4; border: 1px solid #e3dccd; border-radius: 12px; padding: 26px 32px 30px; margin-bottom: 26px; }
+h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: 38px; margin: 0 0 4px; }
+h2 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: 32px; margin: 0 0 6px; }
+h2 .num { display: inline-block; width: 46px; height: 46px; line-height: 44px; text-align: center; border-radius: 50%; border: 2px solid #d9480f; color: #d9480f; font-family: Consolas, monospace; font-size: 22px; margin-right: 14px; vertical-align: 4px; }
+.et { font-family: Consolas, "Courier New", monospace; font-size: 13px; letter-spacing: 2px; color: #b0490f; text-transform: uppercase; }
+.gros { font-size: 23px; margin: 6px 0 14px; }
+p { margin: 8px 0 12px; }
+b.o { color: #b0490f; }
+
+/* tuiles d'accueil */
+.tuiles { margin: 20px -8px 0; }
+.tuiles:after { content: ""; display: block; clear: both; }
+.tuile { float: left; width: 33.333%; padding: 8px; }
+.tuile a { display: block; height: 150px; border: 1px solid #e3dccd; border-radius: 12px; background: #f6f2ea; text-align: center; padding-top: 12px; color: #26241f; font-size: 20px; }
+.tuile a:hover { border-color: #d9480f; background: #f8ece2; }
+.tuile svg { display: block; margin: 0 auto 6px; }
+
+/* illustrations */
+.hud { margin: 18px 0; border: 1px solid #2b2b28; border-radius: 10px; overflow: hidden; background: #f3efe6; }
+.ratio { position: relative; height: 0; overflow: hidden; }
+.ratio svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+/* vidéos : masquées si le fichier manque */
+.video { margin: 18px 0; border: 1px solid #2b2b28; border-radius: 10px; overflow: hidden; background: #f3efe6; }
+.video video { display: block; width: 100%; height: auto; }
+.video.absente { display: none; }
+
+/* consignes en images */
+.gestes { margin: 14px -8px 0; }
+.gestes:after { content: ""; display: block; clear: both; }
+.geste { float: left; width: 33.333%; padding: 8px; }
+.geste div { border: 1px solid #e3dccd; border-radius: 12px; background: #f6f2ea; padding: 14px 14px 16px; min-height: 196px; text-align: center; }
+.geste .n { display: inline-block; width: 38px; height: 38px; line-height: 36px; border-radius: 50%; background: #1f1d1a; color: #fff; font-family: Consolas, monospace; font-size: 20px; }
+.geste svg { display: block; margin: 8px auto 6px; }
+.quatre .geste { width: 25%; }
+
+.regle { margin: 16px 0; padding: 16px 20px 16px 84px; border-radius: 12px; position: relative; font-size: 21px; }
+.regle svg { position: absolute; left: 18px; top: 50%; margin-top: -24px; }
+.regle.ok { background: #e9f5ec; border: 1px solid #b5dcc0; }
+.regle.non { background: #fbe9e7; border: 1px solid #f0bdb5; }
+.regle.info { background: #f8ece2; border: 1px solid #f0c8a8; }
+
+table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+td { padding: 10px 12px; border-bottom: 1px solid #ebe5d8; vertical-align: middle; font-size: 19px; }
+tr:last-child td { border-bottom: 0; }
+.bandeau { display: inline-block; min-width: 230px; padding: 8px 12px; border-radius: 6px; color: #fff; font-weight: 700; text-align: center; font-size: 16px; }
+.vert { background: #1f9d55; } .rouge { background: #c92a2a; } .orange { background: #e67700; }
+.pied { text-align: center; color: #7b7568; font-size: 14px; }
+
+@media (max-width: 1000px) {
+  #entete .nav { display: none; }
+  #contenu { padding: 80px 10px 40px; }
+  section { padding: 20px 16px; }
+  .tuile, .geste, .quatre .geste { width: 50%; }
+}
+@media print { #entete { display: none; } #contenu { padding: 0; } section { page-break-inside: avoid; } }
+
+/* vignettes de défauts : vraies images de la machine */
+.galerie { margin: 12px -6px 6px; }
+.galerie:after { content: ""; display: block; clear: both; }
+.vignette { float: left; width: 25%; padding: 6px; text-align: center; font-size: 17px; font-weight: 700; }
+.vignette img { display: block; width: 100%; height: auto; border-radius: 10px; border: 3px solid #d0312d; background: #1f1d1a; margin-bottom: 4px; }
+.vignette.bonne img { border-color: #2f9e44; }
+@media (max-width: 700px) { .vignette { width: 50%; } }
+</style>
+</head>
+<body>
+
+<div id="entete">
+  <div class="marque">Sorting setup <span>ORANGES</span></div>
+  <div class="langues"><a href="../FR/index.html" title="Français">FR</a><a href="../EN/index.html" class="ici" title="English">EN</a><a href="../AR/index.html" title="العربية">عربي</a></div>
+  <div class="nav">
+    <a href="#chemin">The path</a><a href="#taille">Size</a><a href="#defauts">Defects</a><a href="#bien">Setting it right</a><a href="#probleme">Problem?</a>
+  </div>
+</div>
+
+<div id="contenu"><div class="page">
+
+<section id="accueil">
+  <div class="et">Operator guide</div>
+  <h1>Setting up orange sorting</h1>
+  <p class="gros">The machine looks at every orange and puts it in the right outlet.<br>
+  <b class="o">You set the limits.</b></p>
+  <div class="video"><video data-auto loop muted playsinline preload="none" poster="../FR/video/01-accueil.jpg"><source src="../FR/video/01-accueil.mp4" type="video/mp4"></video></div>
+  <div class="regle info"><svg width="48" height="48" viewBox="0 0 48 48" data-picto="info"></svg>
+    Before adjusting: check the <b>variety name</b> on the Prod screen — orange, clementine or pomelo. Each variety has its own settings.</div>
+  <div class="tuiles">
+    <div class="tuile"><a href="#chemin"><svg width="120" height="80" viewBox="0 0 120 80" data-tuile="chemin"></svg>The path</a></div>
+    <div class="tuile"><a href="#taille"><svg width="120" height="80" viewBox="0 0 120 80" data-tuile="taille"></svg>Size</a></div>
+    <div class="tuile"><a href="#defauts"><svg width="120" height="80" viewBox="0 0 120 80" data-tuile="defaut"></svg>Defects</a></div>
+    <div class="tuile"><a href="#bien"><svg width="120" height="80" viewBox="0 0 120 80" data-tuile="bien"></svg>Setting it right</a></div>
+    <div class="tuile"><a href="#probleme"><svg width="120" height="80" viewBox="0 0 120 80" data-tuile="probleme"></svg>Problem?</a></div>
+  </div>
+</section>
+
+<section id="chemin">
+  <div class="et">Understand</div>
+  <h2><span class="num">1</span>The path of an orange</h2>
+  <p class="gros">Every orange turns on the rollers past the cameras, then drops into <b>its outlet</b>.</p>
+  <div class="video"><video data-auto loop muted playsinline preload="none" poster="../FR/video/02-chemin.jpg"><source src="../FR/video/02-chemin.mp4" type="video/mp4"></video></div>
+  <div class="hud"><div class="ratio" style="padding-bottom:33.333%"><svg id="ill-chemin" viewBox="0 0 900 300" preserveAspectRatio="xMidYMid meet"></svg></div></div>
+  <p>The machine sees several sides of it. There are many outlets: one per size or more.</p>
+  <p class="gros">The machine asks <b>2 questions</b>, always in this order:</p>
+  <div class="video"><video data-auto loop muted playsinline preload="none" poster="../FR/video/03-questions.jpg"><source src="../FR/video/03-questions.mp4" type="video/mp4"></video></div>
+  <div class="hud"><div class="ratio" style="padding-bottom:26.667%"><svg id="ill-ordre" viewBox="0 0 900 240" preserveAspectRatio="xMidYMid meet"></svg></div></div>
+</section>
+
+<section id="taille">
+  <div class="et">Setting · screen « Size »</div>
+  <h2><span class="num">2</span>Size</h2>
+  <p class="gros">Size class is the <b>diameter</b> of the orange, in <b>millimetres</b>.</p>
+  <div class="video"><video data-auto loop muted playsinline preload="none" poster="../FR/video/04-calibres.jpg"><source src="../FR/video/04-calibres.mp4" type="video/mp4"></video></div>
+  <div class="hud"><div class="ratio" style="padding-bottom:20.000%"><svg id="ill-bareme" viewBox="0 0 900 180" preserveAspectRatio="xMidYMid meet"></svg></div></div>
+  <div class="regle info"><svg width="48" height="48" viewBox="0 0 48 48" data-picto="info"></svg>
+    The name (for example <b>70/80</b>) is only a label. The <b>red limit</b> decides.</div>
+  <div class="regle non"><svg width="48" height="48" viewBox="0 0 48 48" data-picto="non"></svg>
+    Smaller than the first limit or bigger than the last: <b>off-size</b>, outlet 0.</div>
+  <p class="gros">To adjust: take the <b class="o">red handle</b> and slide it.</p>
+  <div class="video"><video data-auto loop muted playsinline preload="none" poster="../FR/video/05-poignee.jpg"><source src="../FR/video/05-poignee.mp4" type="video/mp4"></video></div>
+  <div class="hud"><div class="ratio" style="padding-bottom:36.667%"><svg id="ill-ecran-taille" viewBox="0 0 900 330" preserveAspectRatio="xMidYMid meet"></svg></div></div>
+  <div class="gestes">
+    <div class="geste"><div><span class="n">1</span><svg width="110" height="80" viewBox="0 0 110 80" data-picto="ecran"></svg>Open the <b>Size</b> screen</div></div>
+    <div class="geste"><div><span class="n">2</span><svg width="110" height="80" viewBox="0 0 110 80" data-picto="glisser"></svg>Slide the <b>red handle</b>, just a little</div></div>
+    <div class="geste"><div><span class="n">3</span><svg width="110" height="80" viewBox="0 0 110 80" data-picto="lacher"></svg>Let go: <b>it is saved</b></div></div>
+  </div>
+  <div class="regle info"><svg width="48" height="48" viewBox="0 0 48 48" data-picto="info"></svg>
+    Handle to the <b>right</b> → more oranges in the class on the <b>left</b>.<br>Handle to the <b>left</b> → more oranges in the class on the <b>right</b>.</div>
+</section>
+
+<section id="defauts">
+  <div class="et">Setting · screen « Quality »</div>
+  <h2><span class="num">3</span>Defects</h2>
+  <p class="gros">What the machine can recognise:</p>
+  <div class="galerie">
+    <div class="vignette bonne"><img src="../FR/images/conforme.jpg" alt=""><span>Good</span></div>
+    <div class="vignette"><img src="../FR/images/vert.jpg" alt=""><span>Green</span></div>
+    <div class="vignette"><img src="../FR/images/coup-de-soleil.jpg" alt=""><span>Sunburn</span></div>
+    <div class="vignette"><img src="../FR/images/blessure.jpg" alt=""><span>Wound</span></div>
+    <div class="vignette"><img src="../FR/images/oleocellose.jpg" alt=""><span>Oleocellosis</span></div>
+    <div class="vignette"><img src="../FR/images/marbrure.jpg" alt=""><span>Marbling</span></div>
+    <div class="vignette"><img src="../FR/images/peau-rugueuse.jpg" alt=""><span>Rough peel</span></div>
+    <div class="vignette"><img src="../FR/images/pourriture.jpg" alt=""><span>Rot</span></div>
+  </div>
+  <p class="gros">One <b>slider</b> per defect. It decides from when the orange is rejected.</p>
+  <div class="video"><video data-auto loop muted playsinline preload="none" poster="../FR/video/06-defauts.jpg"><source src="../FR/video/06-defauts.mp4" type="video/mp4"></video></div>
+  <div class="hud"><div class="ratio" style="padding-bottom:36.667%"><svg id="ill-defauts" viewBox="0 0 900 330" preserveAspectRatio="xMidYMid meet"></svg></div></div>
+  <div class="gestes quatre">
+    <div class="geste"><div><svg width="110" height="80" viewBox="0 0 110 80" data-picto="monter"></svg>Slider <b>up</b><br>→ <b>fewer</b> oranges rejected</div></div>
+    <div class="geste"><div><svg width="110" height="80" viewBox="0 0 110 80" data-picto="descendre"></svg>Slider <b>down</b><br>→ <b>more</b> oranges rejected</div></div>
+    <div class="geste"><div><svg width="110" height="80" viewBox="0 0 110 80" data-picto="cent"></svg><b>100 %</b><br>→ this defect is <b>ignored</b></div></div>
+    <div class="geste"><div><svg width="110" height="80" viewBox="0 0 110 80" data-picto="un"></svg>One slider<br>at a time</div></div>
+  </div>
+  <div class="regle info"><svg width="48" height="48" viewBox="0 0 48 48" data-picto="info"></svg>
+    The Quality screen has no slider? Defect recognition is not installed yet: the machine sorts <b>by size only</b>.</div>
+</section>
+
+<section id="bien">
+  <div class="et">The right method</div>
+  <h2><span class="num">4</span>Setting it right</h2>
+  <p class="gros">Always these 4 steps:</p>
+  <div class="video"><video data-auto loop muted playsinline preload="none" poster="../FR/video/07-bien-regler.jpg"><source src="../FR/video/07-bien-regler.mp4" type="video/mp4"></video></div>
+  <div class="gestes quatre">
+    <div class="geste"><div><span class="n">1</span><svg width="110" height="80" viewBox="0 0 110 80" data-picto="regarder"></svg><b>Look</b><br>at 30 oranges from the outlet</div></div>
+    <div class="geste"><div><span class="n">2</span><svg width="110" height="80" viewBox="0 0 110 80" data-picto="glisser"></svg><b>Move</b><br>a little, one setting only</div></div>
+    <div class="geste"><div><span class="n">3</span><svg width="110" height="80" viewBox="0 0 110 80" data-picto="attendre"></svg><b>Wait</b><br>10 minutes</div></div>
+    <div class="geste"><div><span class="n">4</span><svg width="110" height="80" viewBox="0 0 110 80" data-picto="anneau"></svg><b>Check</b><br>30 oranges with the sizing ring</div></div>
+  </div>
+  <div class="regle info"><svg width="48" height="48" viewBox="0 0 48 48" data-picto="cadenas"></svg>
+    To adjust, you must be <b>logged in</b>: tap the <b>padlock</b> at the top, then your code.</div>
+  <div class="regle ok"><svg width="48" height="48" viewBox="0 0 48 48" data-picto="oui"></svg>
+    Look at <b>30 oranges together</b>. What counts is the majority, not a single fruit.</div>
+  <div class="regle non"><svg width="48" height="48" viewBox="0 0 48 48" data-picto="non"></svg>
+    Do <b>not change everything at once</b>. You would not know what made the difference.</div>
+</section>
+
+<section id="probleme">
+  <div class="et">If something goes wrong</div>
+  <h2><span class="num">5</span>Problem?</h2>
+  <p class="gros">Look at the <b>banner</b> at the top of the Prod screen.</p>
+  <table>
+    <tr><td style="width:260px"><span class="bandeau vert">SORTING ACTIVE</span></td><td>All is well.</td></tr>
+    <tr><td style="width:260px"><span class="bandeau rouge">SORTING SUSPENDED</span></td><td>All oranges go to outlet 0. Press the <b>Ejection</b> button to resume.</td></tr>
+    <tr><td style="width:260px"><span class="bandeau rouge">BLOWING OFF</span></td><td>No orange is ejected. <b>Call the supervisor.</b></td></tr>
+    <tr><td style="width:260px"><span class="bandeau rouge">Camera missing</span></td><td>One lane sorts badly. <b>Call the supervisor.</b></td></tr>
+    <tr><td style="width:260px"><span class="bandeau orange">MAINTENANCE MODE</span></td><td>Do not produce. <b>Call the supervisor.</b></td></tr>
+    <tr><td style="width:260px"><span class="bandeau rouge">AI STOPPED</span></td><td>Defects are no longer seen. <b>Call the supervisor.</b></td></tr>
+  </table>
+  <div class="regle info"><svg width="48" height="48" viewBox="0 0 48 48" data-picto="info"></svg>
+    Some oranges <b>go round again</b> without dropping? No outlet is set for them (<b>return</b>). <b>Call the supervisor.</b></div>
+  <div class="regle info"><svg width="48" height="48" viewBox="0 0 48 48" data-picto="info"></svg>
+    A setting seems lost? Check the <b>variety name</b> on the Prod screen: another variety may be loaded.</div>
+  <div class="regle non"><svg width="48" height="48" viewBox="0 0 48 48" data-picto="non"></svg>
+    <b>Never cut the power</b> and do not close the software yourself.</div>
+  <p class="pied">The values shown are examples. The right values are always those on the screen.</p>
+</section>
+
+</div></div>
+
+<script>
+var CFG = {"fruit": "orange", "roule": true, "couleur": false, "popMin": 56, "popMax": 96, "pxA": 4, "pxB": 0.5, "pVert": 0, "matMin": 0.85, "matBareme": 1, "defs": ["vert", "coup-de-soleil", "blessure", "oleocellose", "pourriture"], "premiereTaille": 1, "coupes": [70, 81], "bornes": [60.2, 64, 67, 70, 73, 77, 81, 84, 87, 92], "nomsClasses": ["60/68", "62/70", "64/73", "67/76", "70/80", "73/84", "77/88", "81/92", "84/96", "87/100", "92/110"], "nomsCourts": ["", "", "", "67/76", "70/80", "73/84", "77/88", "", "", "", ""], "ecran": {"min": 54, "max": 98, "pas": 0.5, "graduation": 4, "poignee": 4, "delta": 1.2, "taille": 12, "etiquettesSeules": true}, "questions": [{"mat": 1, "def": "pourriture", "deco": "defaut"}, {"mat": 1, "def": "", "deco": "anneau"}], "faderDef": "pourriture"};
+var TX = {"regarde": "THE MACHINE LOOKS", "ecran": "SCREEN", "sansDefaut": "no defect", "verte": "green", "mure": "ripe", "classe": "Class", "faderHaut": ["fewer", "rejected"], "faderBas": ["more", "rejected"], "bonnes": "Good:", "rejetees": "Rejected:", "vertTxt": "greener", "rougeTxt": "redder", "sorties": ["DEFECT", "SMALL", "MEDIUM", "LARGE"], "questions": [["1. A defect?", "yes → DEFECT outlet"], ["2. What size?", "60/68 … 92/110"]], "sortiesEcran": ["70/80", "73/84"], "faderNom": "ROT", "defNoms": {"conforme": "Good", "vert": "Green", "coup-de-soleil": "Sunburn", "blessure": "Wound", "oleocellose": "Oleocellosis", "marbrure": "Marbling", "peau-rugueuse": "Rough peel", "pourriture": "Rot"}, "ecranCalibre": "Size", "ecranTeinte": "Colour"};
+var RTL = false;
+// Moteur des guides opérateur par fruit (tomate cerise, myrtille, orange).
+// ES5 et setAttribute seulement : la fenêtre d'aide de Freescan est le moteur d'Internet Explorer.
+// CFG (réglages du fruit), TX (textes de la langue) et RTL sont posés juste avant par generer.py.
+(function () {
+  var NS = "http://www.w3.org/2000/svg";
+  var ENCRE = "#22221f", PALE = "#8a857a", GRILLE = "#e3ddd0", FOND = "#f3efe6", ORANGE = "#e8590c", ROUGE = "#d0312d", VERT = "#2f9e44", BANDE = "#e9e3d6", BANDE2 = "#dfd8c9";
+  var MONO = RTL ? "Tahoma, 'Segoe UI', Arial, sans-serif" : "Consolas, 'Courier New', monospace";
+  var SANS = RTL ? "Tahoma, 'Segoe UI', Arial, sans-serif" : "'Segoe UI', Tahoma, Arial, sans-serif";
+  var reduit = false;
+  try { reduit = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); } catch (e) {}
+
+  function el(p, nom, a, t) {
+    var e = document.createElementNS(NS, nom);
+    for (var k in a) { if (a.hasOwnProperty(k)) e.setAttribute(k, a[k]); }
+    if (t !== undefined) e.textContent = t;
+    if (p) p.appendChild(e);
+    return e;
+  }
+  function txt(p, x, y, s, a) {
+    var b = { x: x, y: y, "font-family": SANS, "font-size": 16, fill: ENCRE };
+    if (a) { for (var k in a) { if (a.hasOwnProperty(k)) b[k] = a[k]; } }
+    return el(p, "text", b, s);
+  }
+  function cloche(a, b) { return a + (Math.random() + Math.random() + Math.random()) / 3 * (b - a); }
+  function alea(a, b) { return a + Math.random() * (b - a); }
+  function fmt(x, n) { return x.toFixed(n).replace(".", ","); }
+  function fmtb(x) { return fmt(x, Math.abs(x - Math.round(x)) > 0.001 ? 1 : 0); }
+  function classe(v, b) { var i = 0; while (i < b.length && v >= b[i]) i++; return i; }
+  function pad(n, l) { var s = "" + n; while (s.length < l) s = "0" + s; return s; }
+  function lisse(t) { return t < 0 ? 0 : t > 1 ? 1 : t * t * (3 - 2 * t); }
+  function f1(x) { return x.toFixed(1); }
+  function melange(c1, c2, u) {
+    u = u < 0 ? 0 : u > 1 ? 1 : u;
+    var a = parseInt(c1.substring(1), 16), b = parseInt(c2.substring(1), 16);
+    var r = Math.round(((a >> 16) & 255) * (1 - u) + ((b >> 16) & 255) * u);
+    var g = Math.round(((a >> 8) & 255) * (1 - u) + ((b >> 8) & 255) * u);
+    var bl = Math.round((a & 255) * (1 - u) + (b & 255) * u);
+    return "#" + pad(((r << 16) | (g << 8) | bl).toString(16), 6);
+  }
+  function fond(svg, W, H) {
+    el(svg, "rect", { x: 0, y: 0, width: W, height: H, fill: FOND });
+    for (var x = 30; x < W; x += 30) el(svg, "line", { x1: x, y1: 0, x2: x, y2: H, stroke: GRILLE });
+    for (var y = 30; y < H; y += 30) el(svg, "line", { x1: 0, y1: y, x2: W, y2: y, stroke: GRILLE });
+  }
+  function etoile(g, x, y, r, col, n) {
+    n = n || 5;
+    var d = "";
+    for (var i = 0; i < n * 2; i++) {
+      var a = Math.PI * i / n - Math.PI / 2, rr = i % 2 ? r * 0.38 : r;
+      d += (i ? " L" : "M") + f1(x + Math.cos(a) * rr) + "," + f1(y + Math.sin(a) * rr);
+    }
+    return el(g, "path", { d: d + " Z", fill: col });
+  }
+  // points pseudo-aléatoires mais stables (même fruit = même dessin)
+  function pt(s, k, rx, ry, f) { f = f || 0.6; return [Math.sin(s * 7 + k * 2.3) * rx * f, Math.cos(s * 5 + k * 1.7) * ry * f]; }
+
+  // ------------------------------------------------------------------
+  // Dessin d'un fruit, centré sur 0,0. px = taille en pixels ; mat = maturité 0 (vert) → 1 (mûr) ;
+  // def = nom du défaut ("" = aucun) ; sev = gravité 0 → 1.
+  // ------------------------------------------------------------------
+  function fruit(p, px, mat, def, graine, sev) {
+    var g = el(p, "g", {}), s = graine || 1, F = CFG.fruit, k, q;
+    if (sev === undefined) sev = 1;
+    if (def && sev < 0.05) def = "";
+    var t = 0.45 + 0.55 * sev;
+    var rx = px / 2 * (F == "tomate" ? 1.12 : 1), ry = px / 2, c;
+    if (F == "tomate") c = mat < 0.5 ? melange("#5e9e36", "#e8a23a", mat * 2) : melange("#e8a23a", "#d0281c", (mat - 0.5) * 2);
+    else if (F == "myrtille") c = mat < 0.5 ? melange("#a9c46c", "#9c3d5c", mat * 2) : melange("#9c3d5c", "#2b3463", (mat - 0.5) * 2);
+    else c = melange("#7fa83a", "#f08a1c", mat);
+    el(g, "ellipse", { cx: 0, cy: 0, rx: f1(rx), ry: f1(ry), fill: c, stroke: melange(c, "#000000", 0.38), "stroke-width": 1.1 });
+    if (F == "orange") { for (k = 0; k < 14; k++) { q = pt(s + 3, k, rx, ry, 0.75); el(g, "circle", { cx: f1(q[0]), cy: f1(q[1]), r: f1(Math.max(0.5, px * 0.012)), fill: "#9a4a08", opacity: 0.35 }); } }
+    if (F == "myrtille") el(g, "ellipse", { cx: 0, cy: 0, rx: f1(rx * 0.97), ry: f1(ry * 0.97), fill: "#b4c2dc", opacity: (0.08 + 0.32 * mat).toFixed(2) });
+    el(g, "ellipse", { cx: f1(-rx * 0.25), cy: f1(-ry * 0.42), rx: f1(rx * 0.36), ry: f1(ry * 0.17), fill: "#ffffff", opacity: F == "myrtille" ? 0.25 : 0.42 });
+    // calice / couronne
+    if (F == "tomate") etoile(g, -rx * 0.78, 0, px * 0.14, "#3f7f2c");
+    else if (F == "myrtille") { etoile(g, -rx * 0.32, -ry * 0.3, px * 0.17, "#1b2040"); el(g, "circle", { cx: f1(-rx * 0.32), cy: f1(-ry * 0.3), r: f1(px * 0.05), fill: "#3a3f5c" }); }
+    else etoile(g, -rx * 0.5, -ry * 0.35, px * 0.08, "#5c7a2a");
+    if (!def) return g;
+    var w = Math.max(1.2, px * 0.05);
+    if (def == "pedoncule") {
+      var x0 = F == "tomate" ? -rx * 0.8 : -rx * 0.32, y0 = F == "tomate" ? 0 : -ry * 0.3;
+      el(g, "path", { d: "M" + f1(x0) + "," + f1(y0) + " Q" + f1(x0 - px * 0.25) + "," + f1(y0 - px * 0.1) + " " + f1(x0 - px * 0.45 * t) + "," + f1(y0 - px * 0.42 * t), stroke: "#4c7a26", "stroke-width": f1(w * 1.2), fill: "none", "stroke-linecap": "round" });
+      if (F == "tomate") etoile(g, x0, y0, px * 0.2, "#2f6b22");
+    } else if (def == "eclatement") {
+      el(g, "path", { d: "M" + f1(-rx * 0.15 * t) + "," + f1(-ry * 0.75 * t) + " L" + f1(rx * 0.05) + "," + f1(-ry * 0.25) + " L" + f1(-rx * 0.08) + "," + f1(ry * 0.15) + " L" + f1(rx * 0.12 * t) + "," + f1(ry * 0.7 * t),
+        stroke: melange(c, "#2a0804", 0.7), "stroke-width": f1(w * 1.3), fill: "none", "stroke-linejoin": "round" });
+      el(g, "path", { d: "M" + f1(-rx * 0.13 * t) + "," + f1(-ry * 0.7 * t) + " L" + f1(rx * 0.06) + "," + f1(-ry * 0.22) + " L" + f1(-rx * 0.06) + "," + f1(ry * 0.15) + " L" + f1(rx * 0.11 * t) + "," + f1(ry * 0.65 * t),
+        stroke: "#f2c7a0", "stroke-width": f1(w * 0.35), fill: "none" });
+    } else if (def == "necrose" || def == "pourriture") {
+      el(g, "ellipse", { cx: f1(rx * 0.55), cy: f1(ry * 0.1), rx: f1(px * 0.22 * t), ry: f1(px * 0.2 * t), fill: def == "necrose" ? "#2a1a10" : "#6d5a2a", opacity: 0.92 });
+      if (def == "pourriture") el(g, "ellipse", { cx: f1(rx * 0.55), cy: f1(ry * 0.1), rx: f1(px * 0.28 * t), ry: f1(px * 0.26 * t), fill: "none", stroke: "#cdbf8a", "stroke-width": f1(w * 0.6), opacity: 0.8 });
+    } else if (def == "botrytis") {
+      for (k = 0; k < 5; k++) { q = pt(s, k, rx * 0.4, ry * 0.4); el(g, "circle", { cx: f1(rx * 0.3 + q[0]), cy: f1(q[1]), r: f1(px * 0.12 * t), fill: "#bdb8ac", opacity: 0.9 }); }
+      for (k = 0; k < 6; k++) { q = pt(s + 2, k, rx * 0.5, ry * 0.5); el(g, "circle", { cx: f1(rx * 0.3 + q[0]), cy: f1(q[1]), r: f1(px * 0.025), fill: "#5a5a50" }); }
+    } else if (def == "thrips" || def == "peau-rugueuse") {
+      var nb = Math.round(8 + 14 * t);
+      for (k = 0; k < nb; k++) { q = pt(s, k, rx, ry, 0.7); el(g, "circle", { cx: f1(q[0]), cy: f1(q[1]), r: f1(Math.max(0.6, px * 0.022)), fill: def == "thrips" ? "#f3e7b2" : "#8a4a10", opacity: 0.85 }); }
+    } else if (def == "tuta") {
+      for (k = 0; k < 3; k++) { q = pt(s, k, rx, ry); el(g, "circle", { cx: f1(q[0]), cy: f1(q[1]), r: f1(px * 0.06 * t + 0.6), fill: "#e9d6a8" }); el(g, "circle", { cx: f1(q[0]), cy: f1(q[1]), r: f1(px * 0.035 * t + 0.4), fill: "#1a1008" }); }
+    } else if (def == "cicatrice" || def == "blessure") {
+      el(g, "path", { d: "M" + f1(-rx * 0.1) + "," + f1(-ry * 0.45 * t) + " q" + f1(rx * 0.25) + "," + f1(ry * 0.3) + " " + f1(rx * 0.45 * t) + "," + f1(ry * 0.6 * t), stroke: def == "cicatrice" ? "#ead7a8" : "#5a2c0a", "stroke-width": f1(w * 1.4), fill: "none", "stroke-linecap": "round" });
+      if (def == "blessure") el(g, "path", { d: "M" + f1(-rx * 0.1) + "," + f1(-ry * 0.45 * t) + " q" + f1(rx * 0.25) + "," + f1(ry * 0.3) + " " + f1(rx * 0.45 * t) + "," + f1(ry * 0.6 * t), stroke: "#b56a2a", "stroke-width": f1(w * 0.5), fill: "none" });
+    } else if (def == "deshydratation") {
+      for (k = 0; k < 4; k++) { var xx = -rx * 0.45 + k * rx * 0.3; el(g, "path", { d: "M" + f1(xx) + "," + f1(-ry * 0.6) + " q" + f1(k % 2 ? 4 : -4) + "," + f1(ry * 0.6) + " " + f1(1) + "," + f1(ry * 1.2), stroke: "#11152e", "stroke-width": f1(w * 0.9 * t), fill: "none", opacity: 0.85 }); }
+    } else if (def == "coup-de-soleil") {
+      el(g, "ellipse", { cx: f1(rx * 0.25), cy: f1(-ry * 0.2), rx: f1(px * 0.28 * t), ry: f1(px * 0.2 * t), fill: "#f6dc8a", opacity: 0.9 });
+    } else if (def == "oleocellose" || def == "marbrure") {
+      for (k = 0; k < (def == "marbrure" ? 6 : 4); k++) { q = pt(s, k, rx, ry); el(g, "ellipse", { cx: f1(q[0]), cy: f1(q[1]), rx: f1(px * 0.09 * t), ry: f1(px * 0.06 * t), fill: def == "oleocellose" ? "#6b6a2a" : "#b8641a", opacity: def == "oleocellose" ? 0.85 : 0.55 }); }
+    } else if (def == "vert") {
+      if (F == "orange") el(g, "ellipse", { cx: f1(rx * 0.2), cy: f1(ry * 0.15), rx: f1(px * 0.3 * t), ry: f1(px * 0.24 * t), fill: "#6f9a32", opacity: 0.9 });
+    }
+    return g;
+  }
+  function pxDe(d) { return CFG.pxA + d * CFG.pxB; }
+
+  // curseur de souris (flèche) ; appui = cercle orange
+  function curseur(svg) {
+    var g = el(svg, "g", {});
+    var onde = el(g, "circle", { cx: 0, cy: 0, r: 10, fill: "none", stroke: ORANGE, "stroke-width": 2, opacity: 0 });
+    el(g, "path", { d: "M0,0 L0,24 L6,18 L11,29 L15,27 L10,16 L18,16 Z", fill: "#ffffff", stroke: ENCRE, "stroke-width": 1.5, "stroke-linejoin": "round" });
+    return { place: function (x, y, appui) {
+      g.setAttribute("transform", "translate(" + f1(x) + " " + f1(y) + ")");
+      onde.setAttribute("opacity", appui ? 0.9 : 0); onde.setAttribute("r", appui ? 13 : 10);
+    } };
+  }
+
+  var numero = 1200;
+  function nouveauFruit() {
+    var f = { n: ++numero, d: cloche(CFG.popMin, CFG.popMax), graine: Math.random() * 10, def: "" };
+    f.mat = Math.random() < CFG.pVert ? alea(0.05, 0.35) : alea(CFG.matMin, 1);
+    if (Math.random() < 0.16) f.def = CFG.defs[Math.floor(Math.random() * CFG.defs.length)];
+    if (f.def == "vert" && CFG.fruit == "myrtille") f.mat = alea(0, 0.15);
+    if (f.def) f.sortie = 0;
+    else if (CFG.couleur && f.mat < 0.5) f.sortie = 1;
+    else f.sortie = CFG.premiereTaille + classe(f.d, CFG.coupes);
+    f.dest = TX.sorties[f.sortie];
+    return f;
+  }
+
+  // ================= 1. le chemin =================
+  function chemin(svg) {
+    var W = 900, H = 300, Y = 196, CX = 220;
+    fond(svg, W, H);
+    el(svg, "line", { x1: 20, y1: Y + 14, x2: 880, y2: Y + 14, stroke: ENCRE, "stroke-width": 2 });
+    el(svg, "line", { x1: 20, y1: Y + 30, x2: 880, y2: Y + 30, stroke: ENCRE });
+    var rouleaux = [];
+    for (var rx = 34; rx < 880; rx += 28) {
+      var g = el(svg, "g", {});
+      el(g, "circle", { cx: rx, cy: Y + 22, r: 6, fill: FOND, stroke: ENCRE });
+      el(g, "line", { x1: rx - 5, y1: Y + 22, x2: rx + 5, y2: Y + 22, stroke: ENCRE });
+      rouleaux.push({ g: g, x: rx });
+    }
+    el(svg, "path", { d: "M" + (CX - 40) + ",70 Q" + CX + ",35 " + (CX + 40) + ",70 Q" + CX + ",105 " + (CX - 40) + ",70 Z", fill: "#ffffff", stroke: ENCRE, "stroke-width": 2 });
+    var iris = el(svg, "circle", { cx: CX, cy: 70, r: 13, fill: ENCRE });
+    var faisceau = el(svg, "polygon", { points: (CX - 14) + ",100 " + (CX + 14) + ",100 " + (CX + 55) + "," + (Y + 8) + " " + (CX - 55) + "," + (Y + 8), fill: ORANGE, "fill-opacity": 0.06 });
+    txt(svg, CX, 26, TX.regarde, { "text-anchor": "middle", "font-family": MONO, "font-size": 12, fill: PALE });
+    var BX = 300, BY = 40;
+    el(svg, "rect", { x: BX, y: BY, width: 230, height: 96, rx: 10, fill: "#ffffff", stroke: ENCRE });
+    el(svg, "path", { d: "M" + (BX + 20) + "," + (BY + 96) + " L" + (BX - 20) + "," + (BY + 130) + " L" + (BX + 44) + "," + (BY + 96) + " Z", fill: "#ffffff", stroke: ENCRE });
+    el(svg, "rect", { x: BX + 21, y: BY + 92, width: 22, height: 6, fill: "#ffffff" });
+    var bTaille = txt(svg, BX + 16, BY + 32, "", { "font-size": 22, "font-weight": "bold" });
+    var bDef = txt(svg, BX + 16, BY + 60, "", { "font-size": 18 });
+    var bDest = txt(svg, BX + 16, BY + 84, "", { "font-size": 15, fill: ORANGE, "font-weight": "bold" });
+    var SX = [570, 660, 750, 840], sorties = [];
+    for (var s = 0; s < 4; s++) {
+      var x = SX[s];
+      el(svg, "rect", { x: x - 7, y: Y - 26, width: 14, height: 12, fill: ENCRE });
+      var souffle = el(svg, "path", { d: "M" + (x - 6) + "," + (Y - 10) + " l-4,10 M" + x + "," + (Y - 10) + " l0,10 M" + (x + 6) + "," + (Y - 10) + " l4,10", stroke: ORANGE, "stroke-width": 2, opacity: 0 });
+      el(svg, "path", { d: "M" + (x - 40) + "," + (Y + 40) + " L" + (x - 34) + "," + (Y + 96) + " L" + (x + 34) + "," + (Y + 96) + " L" + (x + 40) + "," + (Y + 40), fill: "none", stroke: ENCRE, "stroke-width": 2 });
+      txt(svg, x, Y + 60, TX.sorties[s], { "text-anchor": "middle", "font-size": 13, "font-weight": "bold" });
+      var c = txt(svg, x, Y + 88, "0", { "text-anchor": "middle", "font-size": 18, fill: PALE, "font-family": MONO });
+      sorties.push({ souffle: souffle, c: c, n: 0, flash: -1e9 });
+    }
+    var fruits = [], prochain = 0, avant = 0, courant = null, V = 0.1;
+    return function (t) {
+      var dt = avant ? Math.min(50, t - avant) : 16; avant = t;
+      var ang = ((t * V / 6) * 57.3) % 360;
+      for (var r = 0; r < rouleaux.length; r++) rouleaux[r].g.setAttribute("transform", "rotate(" + ang.toFixed(1) + " " + rouleaux[r].x + " " + (Y + 22) + ")");
+      if (t >= prochain) {
+        var d = nouveauFruit();
+        d.px = pxDe(d.d); d.x = 10; d.y = Y + 6 - d.px / 2; d.vy = 0;
+        d.g = fruit(svg, d.px, d.mat, d.def, d.graine, 1);
+        fruits.push(d); prochain = t + alea(800, 1400);
+      }
+      var sous = null;
+      for (var k = fruits.length - 1; k >= 0; k--) {
+        var f = fruits[k];
+        if (!f.tombe) { f.x += V * dt; if (f.x >= SX[f.sortie]) { f.tombe = true; f.vy = 0.05; sorties[f.sortie].flash = t; } }
+        else {
+          f.vy += 0.0009 * dt; f.y += f.vy * dt; f.x += 0.015 * dt;
+          if (f.y > Y + 78) { var so = sorties[f.sortie]; so.n++; so.c.textContent = so.n; svg.removeChild(f.g); fruits.splice(k, 1); continue; }
+        }
+        // le fruit roule : il tourne d'autant qu'il avance
+        var rot = (f.x / (f.px / 2)) * 57.3 * (CFG.roule ? 1 : 0);
+        f.g.setAttribute("transform", "translate(" + f1(f.x) + " " + f1(f.y) + ") rotate(" + (rot % 360).toFixed(0) + ")");
+        if (!f.tombe && f.x > CX - 50 && f.x < CX + 50) sous = f;
+      }
+      if (sous) courant = sous;
+      faisceau.setAttribute("fill-opacity", sous ? 0.2 : 0.06);
+      iris.setAttribute("fill", sous ? ORANGE : ENCRE);
+      iris.setAttribute("cx", f1(CX + (sous ? (sous.x - CX) * 0.12 : 0)));
+      if (courant) {
+        bTaille.textContent = "Ø " + fmt(courant.d, 1) + " mm";
+        bDef.textContent = courant.def ? TX.defNoms[courant.def] : (CFG.couleur ? (courant.mat < 0.5 ? TX.verte : TX.mure) : TX.sansDefaut);
+        bDest.textContent = (RTL ? "← " : "→ ") + courant.dest;
+      }
+      for (var s2 = 0; s2 < 4; s2++) { var a = t - sorties[s2].flash; sorties[s2].souffle.setAttribute("opacity", a < 220 ? (1 - a / 220).toFixed(2) : 0); }
+    };
+  }
+
+  // petit anneau de calibrage (plaque percée de trous de tailles différentes)
+  function anneau(p, x, y, l) {
+    el(p, "rect", { x: f1(x - l / 2), y: f1(y - l * 0.16), width: f1(l), height: f1(l * 0.32), rx: 4, fill: "#ffffff", stroke: ENCRE, "stroke-width": 1.5 });
+    var r = [0.05, 0.075, 0.1];
+    for (var i = 0; i < 3; i++) el(p, "circle", { cx: f1(x - l * 0.3 + i * l * 0.3), cy: y, r: f1(l * r[i]), fill: FOND, stroke: ENCRE });
+  }
+
+  // ================= l'ordre des questions =================
+  function ordre(svg) {
+    var W = 900, H = 240, n = TX.questions.length, pas = W / n, lc = Math.min(260, pas - 50);
+    fond(svg, W, H);
+    var cadres = [];
+    for (var i = 0; i < n; i++) {
+      var x = RTL ? W - pas * (i + 0.5) : pas * (i + 0.5), q = CFG.questions[i];
+      cadres.push(el(svg, "rect", { x: x - lc / 2, y: 26, width: lc, height: 190, rx: 14, fill: "#ffffff", stroke: ENCRE, "stroke-width": 1.5 }));
+      var g = el(svg, "g", { transform: "translate(" + x + " 92)" });
+      fruit(g, 74, q.mat, q.def, 3, 1);
+      if (q.deco == "couleur") { for (var k = 0; k < 6; k++) el(svg, "rect", { x: x - 60 + k * 20, y: 134, width: 20, height: 9, fill: melange(k < 3 ? "#5e9e36" : "#e8a23a", k < 3 ? "#e8a23a" : "#d0281c", (k % 3) / 2) }); }
+      if (q.deco == "anneau") anneau(svg, x, 140, 110);
+      if (q.deco == "defaut") el(svg, "circle", { cx: x + 12, cy: 96, r: 30, fill: "none", stroke: ORANGE, "stroke-width": 2, "stroke-dasharray": "5 4" });
+      txt(svg, x, 176, TX.questions[i][0], { "text-anchor": "middle", "font-size": 22, "font-weight": "bold" });
+      txt(svg, x, 202, TX.questions[i][1], { "text-anchor": "middle", "font-size": 15, fill: PALE });
+      if (i < n - 1) {
+        var xa = x + (RTL ? -1 : 1) * (pas / 2 - 12), sg = RTL ? -1 : 1;
+        el(svg, "path", { d: "M" + (xa - 10 * sg) + ",112 L" + xa + ",112 L" + xa + ",102 L" + (xa + 16 * sg) + ",120 L" + xa + ",138 L" + xa + ",128 L" + (xa - 10 * sg) + ",128 Z", fill: ORANGE });
+      }
+    }
+    return function (t) {
+      var a = Math.floor(t / 1500) % n;
+      for (var i = 0; i < n; i++) { cadres[i].setAttribute("stroke", i == a ? ORANGE : ENCRE); cadres[i].setAttribute("stroke-width", i == a ? 4 : 1.5); }
+    };
+  }
+
+  // ================= barème : un fruit par classe de taille =================
+  function bareme(svg) {
+    var W = 900, H = 180, B = CFG.bornes, n = B.length + 1, pas = W / n, i;
+    fond(svg, W, H);
+    var exemples = [], dmax;
+    for (i = 0; i < n; i++) exemples.push(i == 0 ? B[0] - 2 : i == n - 1 ? B[n - 2] + 3 : (B[i - 1] + B[i]) / 2);
+    dmax = exemples[n - 1];
+    var cadres = [], fs = n > 8 ? 12 : 15;
+    for (i = 0; i < n; i++) {
+      var x = RTL ? W - (pas * i + pas / 2) : pas * i + pas / 2;
+      cadres.push(el(svg, "rect", { x: x - pas / 2 + 4, y: 8, width: pas - 8, height: 164, rx: 10, fill: "#ffffff", stroke: GRILLE }));
+      var g = el(svg, "g", { transform: "translate(" + f1(x) + " 62)" });
+      fruit(g, Math.min(pas - 22, 92) * exemples[i] / dmax, CFG.matBareme, "", 1, 1);
+      txt(svg, x, 124, CFG.nomsClasses ? CFG.nomsClasses[i] : TX.classe + " " + (i + 1), { "text-anchor": "middle", "font-size": fs, "font-weight": "bold" });
+      var lib = i == 0 ? "< " + fmtb(B[0]) : i == n - 1 ? "≥ " + fmtb(B[n - 2]) : fmtb(B[i - 1]) + "–" + fmtb(B[i]);
+      txt(svg, x, 148, lib, { "text-anchor": "middle", "font-size": fs, fill: ORANGE, "font-weight": "bold" });
+      txt(svg, x, 164, "mm", { "text-anchor": "middle", "font-size": 11, fill: PALE });
+    }
+    return function (t) {
+      var a = Math.floor(t / 900) % n;
+      for (var i = 0; i < n; i++) { cadres[i].setAttribute("stroke", i == a ? ORANGE : GRILLE); cadres[i].setAttribute("stroke-width", i == a ? 3 : 1); }
+    };
+  }
+
+  // ================= écran de réglage : une poignée qui glisse =================
+  function ecran(svg, cfg) {
+    var W = 900, H = 330, X0 = 50, X1 = 850, YB = 78, YH = 108, YA = 210, i;
+    fond(svg, W, H);
+    el(svg, "rect", { x: 20, y: 14, width: 860, height: 236, rx: 8, fill: "#ffffff", stroke: ENCRE, "stroke-width": 1.5 });
+    el(svg, "rect", { x: 20, y: 14, width: 860, height: 30, rx: 8, fill: ENCRE });
+    el(svg, "rect", { x: 20, y: 34, width: 860, height: 10, fill: ENCRE });
+    txt(svg, 36, 35, TX.ecran + " « " + cfg.titre + " »", { fill: FOND, "font-family": MONO, "font-size": 14, "font-weight": "bold" });
+    function gx(v) { return X0 + (v - cfg.min) / (cfg.max - cfg.min) * (X1 - X0); }
+    var bandes = [];
+    for (i = 0; i <= cfg.bornes.length; i++) {
+      var r = el(svg, "rect", { y: YB - 24, height: 28, fill: i % 2 ? BANDE2 : BANDE, stroke: "#ffffff", "stroke-width": 2 });
+      var tt = txt(svg, 0, YB - 5, cfg.noms[i], { "text-anchor": "middle", "font-size": cfg.taille || 14, "font-weight": "bold" });
+      bandes.push({ r: r, t: tt });
+    }
+    var NB = Math.round((cfg.max - cfg.min) / cfg.pas), comptes = [], barres = [], maxc = 1;
+    for (i = 0; i < NB; i++) comptes.push(0);
+    for (i = 0; i < cfg.pop.length; i++) { var b = Math.floor((cfg.pop[i] - cfg.min) / cfg.pas); if (b >= 0 && b < NB) comptes[b]++; }
+    for (i = 0; i < NB; i++) maxc = Math.max(maxc, comptes[i]);
+    var lb = (X1 - X0) / NB;
+    for (i = 0; i < NB; i++) {
+      var hh = comptes[i] / maxc * (YA - YH - 4);
+      barres.push(el(svg, "rect", { x: f1(X0 + i * lb + 0.5), y: f1(YA - hh), width: f1(Math.max(1, lb - 1)), height: f1(hh), fill: PALE }));
+    }
+    el(svg, "line", { x1: X0, y1: YA, x2: X1, y2: YA, stroke: ENCRE });
+    for (var v = cfg.min; v <= cfg.max; v += cfg.graduation) txt(svg, gx(v), YA + 32, v + "", { "text-anchor": "middle", "font-size": 12, fill: PALE, "font-family": MONO });
+    txt(svg, X1, YA + 32, "mm", { "text-anchor": "start", "font-size": 12, fill: PALE, "font-family": MONO, dx: 8 });
+    var poignees = [];
+    for (i = 0; i < cfg.bornes.length; i++) {
+      var pg = el(svg, "g", {});
+      el(pg, "line", { x1: 0, y1: YB - 26, x2: 0, y2: YA, stroke: ROUGE, "stroke-width": i == cfg.poignee ? 3 : 2 });
+      el(pg, "rect", { x: -8, y: YA + 2, width: 16, height: 14, rx: 3, fill: ROUGE });
+      var lab = txt(pg, 0, YB + 16, "", { "text-anchor": "middle", "font-size": 13, fill: ROUGE, "font-weight": "bold", "font-family": MONO });
+      poignees.push({ g: pg, lab: lab });
+    }
+    var cg = [], k;
+    for (k = 0; k < 2; k++) {
+      var cx = k == 0 ? 250 : 650;
+      el(svg, "rect", { x: cx - 160, y: 262, width: 320, height: 56, rx: 10, fill: "#ffffff", stroke: ENCRE });
+      txt(svg, cx - 145, 296, cfg.sorties[k], { "font-size": 18, "font-weight": "bold" });
+      cg.push({ nb: txt(svg, cx + 70, 298, "", { "font-size": 24, "font-weight": "bold", "text-anchor": "end", "font-family": MONO }), fl: el(svg, "path", { d: "", fill: VERT }), x: cx });
+    }
+    var cur = curseur(svg), base = [0, 0], dejaBase = false;
+    function compter(bs) {
+      var a = cfg.poignee, n0 = 0, n1 = 0, lo = a > 0 ? bs[a - 1] : -1e9, hi = a + 1 < bs.length ? bs[a + 1] : 1e9;
+      for (var i = 0; i < cfg.pop.length; i++) { var p = cfg.pop[i]; if (p >= lo && p < bs[a]) n0++; else if (p >= bs[a] && p < hi) n1++; }
+      return [n0, n1];
+    }
+    function dessiner(bs) {
+      var lim = [cfg.min].concat(bs).concat([cfg.max]), i;
+      for (i = 0; i < bandes.length; i++) {
+        var a = gx(lim[i]), b = gx(lim[i + 1]);
+        bandes[i].r.setAttribute("x", f1(a)); bandes[i].r.setAttribute("width", f1(Math.max(0, b - a)));
+        bandes[i].t.setAttribute("x", f1((a + b) / 2));
+        var touche = (i == cfg.poignee || i == cfg.poignee + 1);
+        bandes[i].r.setAttribute("fill", touche ? (i == cfg.poignee ? "#f6c7a6" : "#fbe3d1") : (i % 2 ? BANDE2 : BANDE));
+      }
+      for (i = 0; i < NB; i++) {
+        var c = classe(cfg.min + (i + 0.5) * cfg.pas, bs);
+        barres[i].setAttribute("fill", c == cfg.poignee ? ORANGE : c == cfg.poignee + 1 ? "#f2a679" : PALE);
+      }
+      for (i = 0; i < bs.length; i++) {
+        poignees[i].g.setAttribute("transform", "translate(" + f1(gx(bs[i])) + " 0)");
+        poignees[i].lab.textContent = i == cfg.poignee || !cfg.etiquettesSeules ? fmtb(Math.round(bs[i] * 10) / 10) : "";
+      }
+      var n = compter(bs);
+      if (!dejaBase) { base = n; dejaBase = true; }
+      for (var k = 0; k < 2; k++) {
+        cg[k].nb.textContent = n[k];
+        var d = n[k] - base[k], X = cg[k].x + 110;
+        if (d > 0) { cg[k].fl.setAttribute("d", "M" + X + ",300 L" + (X + 24) + ",300 L" + (X + 12) + ",280 Z"); cg[k].fl.setAttribute("fill", VERT); }
+        else if (d < 0) { cg[k].fl.setAttribute("d", "M" + X + ",280 L" + (X + 24) + ",280 L" + (X + 12) + ",300 Z"); cg[k].fl.setAttribute("fill", ROUGE); }
+        else cg[k].fl.setAttribute("d", "");
+      }
+    }
+    dessiner(cfg.bornes);
+    var P = 10000, repos = [800, 300];
+    return function (t) {
+      var u = t % P, v0 = cfg.bornes[cfg.poignee], v = v0, appui = false, x, y;
+      var hx = gx(v0), hy = YA + 9;
+      if (u < 1000) { x = repos[0]; y = repos[1]; }
+      else if (u < 2200) { var a = lisse((u - 1000) / 1200); x = repos[0] + (hx - repos[0]) * a; y = repos[1] + (hy - repos[1]) * a; }
+      else if (u < 2600) { x = hx; y = hy; appui = true; }
+      else if (u < 4600) { v = v0 + cfg.delta * lisse((u - 2600) / 2000); x = gx(v); y = hy; appui = true; }
+      else if (u < 6600) { v = v0 + cfg.delta; x = gx(v); y = hy; }
+      else if (u < 7000) { v = v0 + cfg.delta; x = gx(v); y = hy; appui = true; }
+      else if (u < 9000) { v = v0 + cfg.delta * (1 - lisse((u - 7000) / 2000)); x = gx(v); y = hy; appui = true; }
+      else { var b = lisse((u - 9000) / 1000); x = hx + (repos[0] - hx) * b; y = hy + (repos[1] - hy) * b; }
+      var bs = cfg.bornes.slice(0); bs[cfg.poignee] = v;
+      dessiner(bs);
+      cur.place(x, y, appui);
+    };
+  }
+  function ecranTaille(svg) {
+    var pop = [], e = CFG.ecran;
+    for (var i = 0; i < 700; i++) pop.push(cloche(CFG.popMin, CFG.popMax));
+    return ecran(svg, { titre: TX.ecranCalibre, bornes: CFG.bornes, noms: CFG.nomsCourts || TX.nomsCourts, min: e.min, max: e.max, pas: e.pas, graduation: e.graduation,
+      poignee: e.poignee, delta: e.delta, pop: pop, sorties: TX.sortiesEcran, taille: e.taille, etiquettesSeules: e.etiquettesSeules });
+  }
+
+  // ================= couleur (tomate) : échelle du vert au rouge =================
+  function teinteMat(h) { return Math.max(0, Math.min(1, (h - 50) / 50)) * 0.85 + (h > 90 ? (h - 90) / 70 : 0); }
+  function echelleCouleur(svg) {
+    var W = 900, H = 200, X0 = 40, X1 = 860, MIN = 50, MAX = 100, P = CFG.palettes, i;
+    fond(svg, W, H);
+    function hx(h) { var x = X0 + (h - MIN) / (MAX - MIN) * (X1 - X0); return RTL ? W - x : x; }
+    for (i = 0; i < P.length; i++) {
+      var a = hx(P[i][1]), b = hx(P[i][2]), m = (P[i][1] + P[i][2]) / 2, xm = (a + b) / 2;
+      el(svg, "rect", { x: f1(Math.min(a, b)), y: 118, width: f1(Math.abs(b - a)), height: 34, fill: melange("#ffffff", P[i][3], 0.55), stroke: FOND, "stroke-width": 2 });
+      txt(svg, xm, 141, P[i][0], { "text-anchor": "middle", "font-size": 15, "font-weight": "bold" });
+      var xt = X0 + (X1 - X0) * (i + 0.5) / P.length; if (RTL) xt = W - xt;
+      el(svg, "path", { d: "M" + f1(xt) + ",96 L" + f1(xm) + ",116", stroke: PALE, "stroke-width": 1, "stroke-dasharray": "3 3" });
+      var g = el(svg, "g", { transform: "translate(" + f1(xt) + " 66)" });
+      fruit(g, 50, teinteMat(m), "", 1, 1);
+    }
+    for (i = 1; i < P.length; i++) {
+      el(svg, "line", { x1: hx(P[i][1]), y1: 112, x2: hx(P[i][1]), y2: 158, stroke: ROUGE, "stroke-width": 3 });
+      txt(svg, hx(P[i][1]), 180, fmtb(P[i][1]), { "text-anchor": "middle", "font-size": 15, fill: ROUGE, "font-weight": "bold" });
+    }
+    txt(svg, RTL ? X1 : X0, 26, TX.vertTxt, { "font-size": 14, fill: PALE, "text-anchor": RTL ? "end" : "start" });
+    txt(svg, RTL ? X0 : X1, 26, TX.rougeTxt, { "font-size": 14, fill: PALE, "text-anchor": RTL ? "start" : "end" });
+    var y0 = 22, xa = RTL ? 760 : 140, xb = RTL ? 140 : 760;
+    el(svg, "path", { d: "M" + xa + "," + y0 + " L" + xb + "," + y0, stroke: PALE, "stroke-width": 1.5, "stroke-dasharray": "5 4" });
+    el(svg, "path", { d: RTL ? "M140,16 L128,22 L140,28 Z" : "M760,16 L772,22 L760,28 Z", fill: PALE });
+    return null;
+  }
+
+  // écran « Teinte » : un min et un max par couleur, boutons + et −
+  function ecranTeinte(svg) {
+    var W = 900, H = 330, P = CFG.palettes, n = P.length, i;
+    fond(svg, W, H);
+    el(svg, "rect", { x: 20, y: 14, width: 860, height: 170, rx: 8, fill: "#ffffff", stroke: ENCRE, "stroke-width": 1.5 });
+    el(svg, "rect", { x: 20, y: 14, width: 860, height: 30, rx: 8, fill: ENCRE });
+    el(svg, "rect", { x: 20, y: 34, width: 860, height: 10, fill: ENCRE });
+    txt(svg, 36, 35, TX.ecran + " « " + TX.ecranTeinte + " »", { fill: FOND, "font-family": MONO, "font-size": 14, "font-weight": "bold" });
+    var lc = 840 / n, cols = [];
+    for (i = 0; i < n; i++) {
+      var j = RTL ? n - 1 - i : i, x = 30 + j * lc;
+      el(svg, "rect", { x: x + 6, y: 54, width: lc - 12, height: 22, rx: 4, fill: melange("#ffffff", P[i][3], 0.7) });
+      txt(svg, x + lc / 2, 71, P[i][0], { "text-anchor": "middle", "font-size": 15, "font-weight": "bold" });
+      var ligne = [];
+      for (var r = 0; r < 2; r++) {
+        var y = 96 + r * 44;
+        txt(svg, x + 10, y + 20, r == 0 ? "max" : "min", { "font-size": 12, fill: PALE, "font-family": MONO });
+        el(svg, "rect", { x: x + 40, y: y, width: 26, height: 30, rx: 4, fill: BANDE, stroke: ENCRE });
+        txt(svg, x + 53, y + 21, "−", { "text-anchor": "middle", "font-size": 18, "font-weight": "bold" });
+        var val = txt(svg, x + (30 + lc) / 2, y + 21, "", { "text-anchor": "middle", "font-size": 14, "font-weight": "bold", "font-family": MONO });
+        el(svg, "rect", { x: x + lc - 36, y: y, width: 26, height: 30, rx: 4, fill: BANDE, stroke: ENCRE });
+        txt(svg, x + lc - 23, y + 21, "+", { "text-anchor": "middle", "font-size": 18, "font-weight": "bold" });
+        ligne.push({ val: val, plus: [x + lc - 23, y + 15] });
+      }
+      cols.push(ligne);
+    }
+    // bande zoomée sous l'écran : les tomates proches de la limite changent de couleur
+    var Z0 = 88, Z1 = 96, BX0 = 60, BX1 = 840;
+    function zx(h) { var x = BX0 + (h - Z0) / (Z1 - Z0) * (BX1 - BX0); return RTL ? 900 - x : x; }
+    var bandes = [];
+    for (i = 0; i < n; i++) bandes.push(el(svg, "rect", { y: 286, height: 14, fill: melange("#ffffff", P[i][3], 0.6) }));
+    var teintes = CFG.tomatesZoom, tom = [];
+    for (i = 0; i < teintes.length; i++) {
+      var g = el(svg, "g", { transform: "translate(" + f1(zx(teintes[i])) + " 236)" });
+      fruit(g, 30, teinteMat(teintes[i]), "", i + 1, 1);
+      tom.push(txt(svg, zx(teintes[i]), 276, "", { "text-anchor": "middle", "font-size": 13, "font-weight": "bold" }));
+    }
+    var cur = curseur(svg), A = CFG.teinteAnim, P2 = 12000;
+    var baseMin = P[A.couleur][1], baseMax = P[A.couleur - 1][2];
+    return function (t) {
+      var u = t % P2, nMin = 0, nMax = 0, appui = false, x, y;
+      var pMin = cols[A.couleur][1].plus, pMax = cols[A.couleur - 1][0].plus, repos = [450, 320];
+      var clics = [2200, 2800, 3400], clics2 = [5400, 6000, 6600];
+      for (var c = 0; c < 3; c++) { if (u > clics[c]) nMin++; if (u > clics2[c]) nMax++; if (Math.abs(u - clics[c] - 100) < 150 || Math.abs(u - clics2[c] - 100) < 150) appui = true; }
+      if (u > 10500) { nMin = 0; nMax = 0; }
+      if (u < 1000) { x = repos[0]; y = repos[1]; }
+      else if (u < 2000) { var a = lisse((u - 1000) / 1000); x = repos[0] + (pMin[0] - repos[0]) * a; y = repos[1] + (pMin[1] - repos[1]) * a; }
+      else if (u < 4200) { x = pMin[0]; y = pMin[1]; }
+      else if (u < 5200) { var b = lisse((u - 4200) / 1000); x = pMin[0] + (pMax[0] - pMin[0]) * b; y = pMin[1] + (pMax[1] - pMin[1]) * b; }
+      else if (u < 9500) { x = pMax[0]; y = pMax[1]; }
+      else { var d = lisse((u - 9500) / 1000); x = pMax[0] + (repos[0] - pMax[0]) * d; y = pMax[1] + (repos[1] - pMax[1]) * d; }
+      var lim = [];
+      for (var i = 0; i < n; i++) lim.push([P[i][1], P[i][2]]);
+      lim[A.couleur][0] = baseMin + A.pas * nMin; lim[A.couleur - 1][1] = baseMax + A.pas * nMax;
+      for (i = 0; i < n; i++) {
+        cols[i][0].val.textContent = fmt(lim[i][1], 1); cols[i][1].val.textContent = fmt(lim[i][0], 1);
+        var a1 = zx(Math.max(Z0, Math.min(Z1, lim[i][0]))), a2 = zx(Math.max(Z0, Math.min(Z1, lim[i][1])));
+        bandes[i].setAttribute("x", f1(Math.min(a1, a2))); bandes[i].setAttribute("width", f1(Math.abs(a2 - a1)));
+      }
+      for (i = 0; i < teintes.length; i++) {
+        var nom = "?";
+        for (var k = 0; k < n; k++) if (teintes[i] >= lim[k][0] && teintes[i] < lim[k][1]) nom = P[k][0];
+        tom[i].textContent = nom; tom[i].setAttribute("fill", nom == "?" ? ROUGE : ENCRE);
+      }
+      cur.place(x, y, appui);
+    };
+  }
+
+  // ================= curseur de défaut =================
+  function defauts(svg) {
+    var W = 900, H = 330, FX = RTL ? 790 : 110, T0 = 50, T1 = 270, i;
+    fond(svg, W, H);
+    el(svg, "rect", { x: FX - 80, y: 14, width: 170, height: 302, rx: 10, fill: "#ffffff", stroke: ENCRE });
+    txt(svg, FX, 38, TX.faderNom, { "text-anchor": "middle", "font-size": 14, "font-weight": "bold", "font-family": MONO });
+    el(svg, "rect", { x: FX - 5, y: T0, width: 10, height: T1 - T0, rx: 5, fill: BANDE2 });
+    txt(svg, FX + 26, T0 + 8, TX.faderHaut[0], { "font-size": 13, fill: PALE });
+    txt(svg, FX + 26, T0 + 24, TX.faderHaut[1], { "font-size": 13, fill: PALE });
+    txt(svg, FX + 26, T1 - 10, TX.faderBas[0], { "font-size": 13, fill: PALE });
+    txt(svg, FX + 26, T1 + 6, TX.faderBas[1], { "font-size": 13, fill: PALE });
+    var bouton = el(svg, "rect", { x: FX - 24, y: 0, width: 48, height: 22, rx: 5, fill: ROUGE });
+    var remplis = el(svg, "rect", { x: FX - 5, y: 0, width: 10, height: 0, rx: 5, fill: ORANGE });
+    var pc = txt(svg, FX - 32, 0, "", { "text-anchor": "end", "font-size": 13, fill: ROUGE, "font-weight": "bold", "font-family": MONO });
+    var grille = [], c, l;
+    for (l = 0; l < 4; l++) for (c = 0; c < 6; c++) {
+      var k = l * 6 + c, sev = (k * 7 % 24) / 23;
+      var x = (RTL ? 40 : 260) + c * 100 + 44, y = 56 + l * 62;
+      var cadre = el(svg, "rect", { x: x - 44, y: y - 26, width: 88, height: 52, rx: 8, fill: "#ffffff", stroke: GRILLE, "stroke-width": 1.5 });
+      var g = el(svg, "g", { transform: "translate(" + x + " " + y + ")" });
+      fruit(g, 40, CFG.fruit == "myrtille" && CFG.faderDef == "vert" ? 1 - sev * 0.9 : CFG.matBareme, CFG.faderDef, k + 1, sev);
+      grille.push({ sev: sev, cadre: cadre, croix: el(svg, "path", { d: "M" + (x + 26) + "," + (y - 22) + " l12,12 m0,-12 l-12,12", stroke: ROUGE, "stroke-width": 3, opacity: 0 }) });
+    }
+    var nbOk = txt(svg, RTL ? 120 : 330, 316, "", { "font-size": 18, "font-weight": "bold", fill: VERT });
+    var nbRej = txt(svg, RTL ? 410 : 620, 316, "", { "font-size": 18, "font-weight": "bold", fill: ROUGE });
+    var cur = curseur(svg), P = 9000;
+    return function (t) {
+      var u = t % P, s;
+      if (u < 1500) s = 0.5;
+      else if (u < 3500) s = 0.5 + 0.35 * lisse((u - 1500) / 2000);
+      else if (u < 4500) s = 0.85;
+      else if (u < 6500) s = 0.85 - 0.6 * lisse((u - 4500) / 2000);
+      else if (u < 7500) s = 0.25;
+      else s = 0.25 + 0.25 * lisse((u - 7500) / 1500);
+      var y = T1 - s * (T1 - T0);
+      bouton.setAttribute("y", f1(y - 11));
+      remplis.setAttribute("y", f1(y)); remplis.setAttribute("height", f1(T1 - y));
+      pc.setAttribute("y", f1(y + 5)); pc.textContent = Math.round(90 + s * 10) + "%";
+      var ok = 0, rej = 0;
+      for (var i = 0; i < grille.length; i++) {
+        var r = grille[i].sev >= s;
+        grille[i].cadre.setAttribute("stroke", r ? ROUGE : GRILLE);
+        grille[i].cadre.setAttribute("fill", r ? "#fbe9e7" : "#ffffff");
+        grille[i].croix.setAttribute("opacity", r ? 1 : 0);
+        if (r) rej++; else ok++;
+      }
+      nbOk.textContent = TX.bonnes + " " + ok; nbRej.textContent = TX.rejetees + " " + rej;
+      cur.place(FX + 12, y + 4, (u > 1300 && u < 3600) || (u > 4300 && u < 6600) || u > 7300);
+    };
+  }
+
+  // ================= petits pictogrammes =================
+  function picto(svg, nom) {
+    var g, i;
+    if (nom == "ecran") {
+      el(svg, "rect", { x: 15, y: 8, width: 80, height: 54, rx: 5, fill: "#ffffff", stroke: ENCRE, "stroke-width": 2 });
+      el(svg, "rect", { x: 22, y: 16, width: 66, height: 10, fill: "#f6c7a6" });
+      for (i = 0; i < 8; i++) el(svg, "rect", { x: 24 + i * 8, y: 54 - (6 + (i * 37 % 22)), width: 6, height: 6 + (i * 37 % 22), fill: PALE });
+      el(svg, "rect", { x: 45, y: 62, width: 20, height: 8, fill: ENCRE });
+    } else if (nom == "glisser" || nom == "lacher") {
+      el(svg, "line", { x1: 10, y1: 30, x2: 100, y2: 30, stroke: PALE, "stroke-width": 4 });
+      el(svg, "rect", { x: 47, y: 18, width: 16, height: 24, rx: 3, fill: ROUGE });
+      if (nom == "glisser") { el(svg, "path", { d: "M70,30 L92,30 M86,24 L93,30 L86,36", stroke: ORANGE, "stroke-width": 3, fill: "none" }); el(svg, "path", { d: "M40,30 L18,30 M24,24 L17,30 L24,36", stroke: ORANGE, "stroke-width": 3, fill: "none" }); }
+      g = el(svg, "g", { transform: "translate(53 40)" });
+      el(g, "path", { d: "M0,0 L0,24 L6,18 L11,29 L15,27 L10,16 L18,16 Z", fill: "#ffffff", stroke: ENCRE, "stroke-width": 1.5 });
+      if (nom == "lacher") { el(svg, "circle", { cx: 88, cy: 58, r: 13, fill: VERT }); el(svg, "path", { d: "M81,58 L86,63 L95,53", stroke: "#fff", "stroke-width": 3, fill: "none" }); }
+    } else if (nom == "plusmoins") {
+      el(svg, "rect", { x: 14, y: 20, width: 32, height: 34, rx: 5, fill: BANDE, stroke: ENCRE, "stroke-width": 1.5 }); txt(svg, 30, 45, "−", { "text-anchor": "middle", "font-size": 24, "font-weight": "bold" });
+      el(svg, "rect", { x: 64, y: 20, width: 32, height: 34, rx: 5, fill: BANDE, stroke: ORANGE, "stroke-width": 2.5 }); txt(svg, 80, 45, "+", { "text-anchor": "middle", "font-size": 24, "font-weight": "bold", fill: ORANGE });
+      g = el(svg, "g", { transform: "translate(78 44)" });
+      el(g, "path", { d: "M0,0 L0,24 L6,18 L11,29 L15,27 L10,16 L18,16 Z", fill: "#ffffff", stroke: ENCRE, "stroke-width": 1.5 });
+    } else if (nom == "voisin") {
+      el(svg, "rect", { x: 8, y: 26, width: 46, height: 22, fill: melange("#ffffff", "#e8a23a", 0.6) }); el(svg, "rect", { x: 56, y: 26, width: 46, height: 22, fill: melange("#ffffff", "#d0281c", 0.6) });
+      el(svg, "line", { x1: 55, y1: 18, x2: 55, y2: 56, stroke: ROUGE, "stroke-width": 3 });
+      el(svg, "path", { d: "M40,66 L70,66 M64,60 L71,66 L64,72", stroke: ORANGE, "stroke-width": 3, fill: "none" });
+      el(svg, "path", { d: "M40,10 L70,10 M64,4 L71,10 L64,16", stroke: ORANGE, "stroke-width": 3, fill: "none" });
+    } else if (nom == "monter" || nom == "descendre") {
+      var haut = nom == "monter";
+      el(svg, "rect", { x: 30, y: 6, width: 8, height: 68, rx: 4, fill: BANDE2 });
+      el(svg, "rect", { x: 20, y: haut ? 8 : 52, width: 28, height: 16, rx: 4, fill: ROUGE });
+      el(svg, "path", { d: haut ? "M60,50 L60,14 M52,22 L60,12 L68,22" : "M60,14 L60,50 M52,42 L60,52 L68,42", stroke: ORANGE, "stroke-width": 3, fill: "none" });
+      g = el(svg, "g", { transform: "translate(90 40)" }); fruit(g, 30, CFG.matBareme, haut ? "" : CFG.faderDef, 2, 0.9);
+    } else if (nom == "cent") {
+      el(svg, "rect", { x: 30, y: 6, width: 8, height: 68, rx: 4, fill: ORANGE });
+      el(svg, "rect", { x: 20, y: 2, width: 28, height: 16, rx: 4, fill: ROUGE });
+      txt(svg, 78, 18, "100%", { "text-anchor": "middle", "font-size": 15, "font-weight": "bold", fill: ROUGE, "font-family": MONO });
+      el(svg, "circle", { cx: 78, cy: 48, r: 16, fill: "none", stroke: PALE, "stroke-width": 3 }); el(svg, "path", { d: "M67,37 L89,59", stroke: PALE, "stroke-width": 3 });
+    } else if (nom == "un") {
+      for (var j = 0; j < 3; j++) { el(svg, "rect", { x: 22 + j * 26, y: 8, width: 6, height: 64, rx: 3, fill: BANDE2 }); el(svg, "rect", { x: 15 + j * 26, y: j == 1 ? 18 : 40, width: 20, height: 12, rx: 3, fill: j == 1 ? ROUGE : PALE }); }
+    } else if (nom == "regarder") {
+      el(svg, "path", { d: "M15,40 Q55,6 95,40 Q55,74 15,40 Z", fill: "#ffffff", stroke: ENCRE, "stroke-width": 2 });
+      el(svg, "circle", { cx: 55, cy: 40, r: 13, fill: ORANGE }); el(svg, "circle", { cx: 55, cy: 40, r: 5, fill: ENCRE });
+    } else if (nom == "attendre") {
+      el(svg, "circle", { cx: 55, cy: 40, r: 30, fill: "#ffffff", stroke: ENCRE, "stroke-width": 2 });
+      el(svg, "path", { d: "M55,40 L55,18 M55,40 L72,48", stroke: ENCRE, "stroke-width": 3 });
+      el(svg, "path", { d: "M55,10 A30,30 0 0 1 85,40 L55,40 Z", fill: ORANGE, opacity: 0.4 });
+    } else if (nom == "anneau") {
+      anneau(svg, 55, 52, 96);
+      g = el(svg, "g", { transform: "translate(85 26)" }); fruit(g, 26, CFG.matBareme, "", 1, 1);
+      el(svg, "path", { d: "M80,38 L84,46", stroke: ORANGE, "stroke-width": 2 });
+    } else if (nom == "info" || nom == "oui" || nom == "non" || nom == "cadenas") {
+      var col = nom == "non" ? ROUGE : nom == "oui" ? VERT : ORANGE;
+      el(svg, "circle", { cx: 24, cy: 24, r: 22, fill: col });
+      if (nom == "info") { el(svg, "circle", { cx: 24, cy: 14, r: 3, fill: "#fff" }); el(svg, "rect", { x: 21, y: 20, width: 6, height: 16, rx: 2, fill: "#fff" }); }
+      if (nom == "oui") el(svg, "path", { d: "M13,24 L21,32 L35,16", stroke: "#fff", "stroke-width": 4, fill: "none" });
+      if (nom == "non") el(svg, "path", { d: "M15,15 L33,33 M33,15 L15,33", stroke: "#fff", "stroke-width": 4 });
+      if (nom == "cadenas") { el(svg, "rect", { x: 14, y: 22, width: 20, height: 14, rx: 2, fill: "#fff" }); el(svg, "path", { d: "M18,22 L18,17 A6,6 0 0 1 30,17 L30,22", stroke: "#fff", "stroke-width": 3, fill: "none" }); }
+    }
+  }
+  // dessins des tuiles d'accueil
+  function tuile(svg, nom) {
+    var g, i, m = CFG.matBareme;
+    if (nom == "chemin") { el(svg, "line", { x1: 5, y1: 60, x2: 115, y2: 60, stroke: ENCRE, "stroke-width": 2 }); for (i = 0; i < 3; i++) { g = el(svg, "g", { transform: "translate(" + (22 + i * 34) + " 46)" }); fruit(g, 26, m, "", i + 1, 1); } el(svg, "path", { d: "M95,20 L112,20 M106,14 L113,20 L106,26", stroke: ORANGE, "stroke-width": 3, fill: "none" }); }
+    else if (nom == "taille") { var t = [18, 28, 40]; for (var j = 0; j < 3; j++) { g = el(svg, "g", { transform: "translate(" + (20 + j * 38) + " 38)" }); fruit(g, t[j], m, "", 1, 1); } txt(svg, 60, 76, "mm", { "text-anchor": "middle", "font-size": 14, fill: ORANGE, "font-weight": "bold" }); }
+    else if (nom == "couleur") { var mm = [0.15, 0.55, 0.98]; for (var k = 0; k < 3; k++) { g = el(svg, "g", { transform: "translate(" + (24 + k * 36) + " 40)" }); fruit(g, 30, mm[k], "", 1, 1); } }
+    else if (nom == "defaut") { g = el(svg, "g", { transform: "translate(58 40)" }); fruit(g, 56, m, CFG.faderDef, 4, 1); el(svg, "path", { d: "M92,12 l14,14 m0,-14 l-14,14", stroke: ROUGE, "stroke-width": 3 }); }
+    else if (nom == "bien") { el(svg, "rect", { x: 10, y: 34, width: 100, height: 10, rx: 5, fill: BANDE2 }); el(svg, "rect", { x: 52, y: 26, width: 16, height: 26, rx: 3, fill: ROUGE }); el(svg, "path", { d: "M75,39 L95,39 M89,33 L96,39 L89,45", stroke: ORANGE, "stroke-width": 3, fill: "none" }); }
+    else if (nom == "probleme") { el(svg, "path", { d: "M60,8 L104,72 L16,72 Z", fill: "#e67700" }); el(svg, "rect", { x: 56, y: 28, width: 8, height: 24, rx: 2, fill: "#fff" }); el(svg, "circle", { cx: 60, cy: 62, r: 4, fill: "#fff" }); }
+  }
+
+  // vidéos : on masque celles dont le fichier manque ou ne se lit pas
+  var vids = document.getElementsByTagName("video");
+  function masquer(v) { if (v && v.parentNode) v.parentNode.className = "video absente"; }
+  for (var iv = 0; iv < vids.length; iv++) {
+    (function (v) {
+      var srcs = v.getElementsByTagName("source");
+      if (srcs.length && srcs[srcs.length - 1].addEventListener) srcs[srcs.length - 1].addEventListener("error", function () { masquer(v); }, false);
+      if (v.addEventListener) v.addEventListener("error", function () { masquer(v); }, false);
+      setTimeout(function () { if (v.networkState === 3 || v.error) masquer(v); else { try { v.play(); } catch (e) {} } }, 2500);
+    })(vids[iv]);
+  }
+  // vignettes de défauts : on masque celles dont l'image manque
+  var imgs = document.getElementsByTagName("img");
+  for (var ii = 0; ii < imgs.length; ii++) {
+    (function (im) {
+      function cacher() { var c = im.parentNode; if (c) c.style.display = "none"; }
+      if (im.addEventListener) im.addEventListener("error", cacher, false);
+      if (im.complete && im.naturalWidth === 0) cacher();
+    })(imgs[ii]);
+  }
+
+  var anims = [], s, id, n;
+  var CIBLES = { "ill-chemin": chemin, "ill-ordre": ordre, "ill-bareme": bareme, "ill-ecran-taille": ecranTaille,
+                 "ill-echelle-couleur": echelleCouleur, "ill-ecran-teinte": ecranTeinte, "ill-defauts": defauts };
+  for (id in CIBLES) {
+    if (!CIBLES.hasOwnProperty(id)) continue;
+    s = document.getElementById(id);
+    if (s) { try { var f = CIBLES[id](s); if (f) anims.push(f); } catch (e) {} }
+  }
+  var lst = document.getElementsByTagName("svg");
+  for (n = 0; n < lst.length; n++) {
+    try {
+      if (lst[n].getAttribute("data-picto")) picto(lst[n], lst[n].getAttribute("data-picto"));
+      if (lst[n].getAttribute("data-tuile")) tuile(lst[n], lst[n].getAttribute("data-tuile"));
+    } catch (e) {}
+  }
+  function image(t) { for (var i = 0; i < anims.length; i++) { try { anims[i](t); } catch (e) {} } }
+  if (reduit || !window.requestAnimationFrame) { for (var t = 0; t < 6000; t += 16) image(t); return; }
+  function boucle(t) { image(t); window.requestAnimationFrame(boucle); }
+  window.requestAnimationFrame(boucle);
+})();
+</script>
+<script>(function(){if(!("IntersectionObserver" in window))return;var vs=document.querySelectorAll("video[data-auto]");var io=new IntersectionObserver(function(es){es.forEach(function(e){var v=e.target;if(e.isIntersecting){v.preload="auto";var p=v.play();if(p&&p.catch)p.catch(function(){})}else v.pause()})},{rootMargin:"200px"});for(var i=0;i<vs.length;i++)io.observe(vs[i])})();</script>
+</body>
+</html>
