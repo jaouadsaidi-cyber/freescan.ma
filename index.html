@@ -385,7 +385,7 @@ footer a:hover{color:var(--texte)}
 
 
 <!-- Simulation 3D -->
-<section class="anatomie" id="anatomie" style="height:825vh">
+<section class="anatomie" id="anatomie" style="height:910vh">
   <div class="scene-fixe">
     <canvas id="scene3d" aria-label="Simulation 3D de la calibreuse Freescan"></canvas>
     <div class="etiquette3d" id="etiquette3d"><i></i><span></span></div>
@@ -396,9 +396,10 @@ footer a:hover{color:var(--texte)}
         <article class="etape3d" data-court="Aligneur"><span class="n3d">03 · Alignement</span><h3>Aligneur</h3><p>Des diviseurs inox répartissent les tomates sur les huit lignes de la machine.</p></article>
         <article class="etape3d" data-court="Chaîne de godets"><span class="n3d">04 · Convoyage</span><h3>Chaînes de godets</h3><p>Chaque ligne est une chaîne de godets : un fruit par godet, suivi jusqu'à sa sortie. Des rouleaux le font tourner pour montrer toutes ses faces.</p></article>
         <article class="etape3d" data-court="Tunnel de vision"><span class="n3d">05 · Vision</span><h3>Tunnel de vision</h3><p>Caméras et éclairage piloté : chaque tomate est vue sous tous les angles, et l'IA juge calibre, couleur et défauts.</p></article>
-        <article class="etape3d" data-court="Éjection"><span class="n3d">06 · Éjection</span><h3>Éjection</h3><p>Devant sa station, un jet d'air bref fait quitter son godet au fruit, sans le toucher.</p></article>
-        <article class="etape3d" data-court="Stations ST"><span class="n3d">07 · Sorties</span><h3>Stations de sortie</h3><p>Une station par sortie : un tapis transversal conduit chaque classe vers sa caisse.</p></article>
-        <article class="etape3d" data-court="Pupitre"><span class="n3d">08 · Pilotage</span><h3>Pupitre opérateur</h3><p>L'écran tactile montre toute la ligne en temps réel, et une recette par variété.</p></article>
+        <article class="etape3d" data-court="Spectral"><span class="n3d">06 · Spectral</span><h3>Caisson spectral</h3><p>Un capteur infrarouge à ondes courtes mesure ce que l'œil ne voit pas, au cœur de chaque fruit.</p></article>
+        <article class="etape3d" data-court="Éjection"><span class="n3d">07 · Éjection</span><h3>Éjection</h3><p>Devant sa station, un jet d'air bref fait quitter son godet au fruit, sans le toucher.</p></article>
+        <article class="etape3d" data-court="Stations ST"><span class="n3d">08 · Sorties</span><h3>Stations de sortie</h3><p>Une station par sortie : un tapis transversal conduit chaque classe vers sa caisse.</p></article>
+        <article class="etape3d" data-court="Pupitre"><span class="n3d">09 · Pilotage</span><h3>Pupitre opérateur</h3><p>L'écran tactile montre toute la ligne en temps réel, et une recette par variété.</p></article>
     </div>
     <nav class="sommaire3d" aria-label="Organes de la machine">
           <button class="active">Vue d&#39;ensemble</button>
@@ -407,6 +408,7 @@ footer a:hover{color:var(--texte)}
           <button>Aligneur</button>
           <button>Chaînes de godets</button>
           <button>Tunnel de vision</button>
+          <button>Caisson spectral</button>
           <button>Éjection</button>
           <button>Stations de sortie</button>
           <button>Pupitre opérateur</button>
@@ -582,6 +584,6 @@ footer a:hover{color:var(--texte)}
 <script>
 (function(){try{var c=document.createElement('canvas');if(!(c.getContext('webgl2')||c.getContext('webgl')))throw 0}catch(e){document.documentElement.classList.add('sans-webgl')}})();
 </script>
-<script type="module" src="js/anatomie.js?v=3"></script>
+<script type="module" src="js/anatomie.js?v=4"></script>
 </body>
 </html>

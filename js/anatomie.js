@@ -249,38 +249,58 @@ const godets = new THREE.InstancedMesh(godetGeo, M.bleu, NB_G * NB * 2);
 const rouleaux = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.022, 0.022, 0.15, 14).rotateX(Math.PI / 2), M.noir, NB_G * NB * 2);
 for (const m of [godets, rouleaux]) { m.frustumCulled = false; m.castShadow = true; m.receiveShadow = true; groupeGodets.add(m); }
 
-// ---------- 5. cellule de vision : capot hexagonal à flancs en V ----------
-const vision = new THREE.Group(); scene.add(vision); vision.position.x = X_TUNNEL;
+// ---------- 5. tunnel de vision (profil hexagonal fin) + 5b. caisson spectral ----------
+// dans l'espace réservé : tunnel de vision puis caisson spectral (SWIR), rectangulaire
+const ZONE_DEB = X_TUNNEL - LONG_TUNNEL / 2, ZONE_FIN = X_TUNNEL + LONG_TUNNEL / 2;
+const LONG_VISION = 2.7, LONG_SPECTRAL = 1.3;
+const X_VISION = ZONE_DEB + LONG_VISION / 2 + 0.05;
+const X_SPECTRAL = ZONE_FIN - LONG_SPECTRAL / 2 - 0.1;
+const vision = new THREE.Group(); scene.add(vision); vision.position.x = X_VISION;
+const logoTex = new THREE.TextureLoader().load('media/logo-freescan.png'); logoTex.colorSpace = THREE.SRGBColorSpace;
 {
-  const y0 = 0.12, hb = 0.5, ht = 1.05;
-  const wb = LARG / 2 + 0.1, wm = LARG / 2 + 0.45, wt = LARG / 2 - 0.05, inset = 0.22;
-  const sh = new THREE.Shape();
-  const P = [[-wb, y0], [-wm, y0 + hb], [-wt, y0 + ht], [wt, y0 + ht], [wm, y0 + hb], [wb, y0]];
-  P.forEach(([z, y], i) => {
-    const zz = z - Math.sign(z) * inset, yy = y > y0 + ht - 0.01 ? y - inset : y;
-    if (i) sh.lineTo(zz, yy); else sh.moveTo(zz, yy);
-  });
-  sh.closePath();
-  const g = new THREE.ExtrudeGeometry(sh, { depth: LONG_TUNNEL - 2 * inset, bevelEnabled: true, bevelThickness: inset, bevelSize: inset, bevelSegments: 1 });
-  g.rotateY(Math.PI / 2); g.translate(-(LONG_TUNNEL - 2 * inset) / 2, Y, 0); g.computeVertexNormals();
+  // profil (Z, Y) : petit chanfrein bas, flanc vertical, grand chanfrein haut, dessus plat
+  const y0 = Y + 0.1, wb = LARG / 2 + 0.02, wm = LARG / 2 + 0.16, wt = LARG / 2 - 0.42;
+  const P = [[-wb, y0], [-wm, y0 + 0.14], [-wm, y0 + 0.42], [-wt, y0 + 0.78], [wt, y0 + 0.78], [wm, y0 + 0.42], [wm, y0 + 0.14], [wb, y0]];
+  const sh = new THREE.Shape(); P.forEach(([z, y], i) => i ? sh.lineTo(z, y) : sh.moveTo(z, y)); sh.closePath();
+  const g = new THREE.ExtrudeGeometry(sh, { depth: LONG_VISION, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.015, bevelSegments: 2 });
+  g.rotateY(Math.PI / 2); g.translate(-LONG_VISION / 2, 0, 0);
   const capot = new THREE.Mesh(g, M.inox); capot.castShadow = true; capot.receiveShadow = true; vision.add(capot);
-  for (const s of [-1, 1]) for (let k = 0; k < 3; k++) {
-    const x = -LONG_TUNNEL / 2 + 0.75 + k * (LONG_TUNNEL - 1.5) / 2;
-    for (const [yy, ang, dz] of [[Y + y0 + hb + 0.27, 0.5, 0.2], [Y + y0 + 0.24, -0.5, 0.16]]) {
-      const gr = boite(0.16, 0.035, 0.03, M.noir, x, yy, s * (wm - dz), vision, 0.012); gr.rotation.x = s * ang; gr.rotation.z = 0.6;
+  // joints de panneaux et grenouillères sur le flanc et le chanfrein haut
+  for (const s2 of [-1, 1]) {
+    for (const x of [-LONG_VISION / 4, LONG_VISION / 4]) {
+      boite(LONG_VISION / 2 - 0.08, 0.27, 0.006, M.inoxBrosse, x, y0 + 0.28, s2 * (wm + 0.004), vision, 0.003);
+      for (const dx of [-0.32, 0.32]) { const gr = boite(0.14, 0.03, 0.03, M.noir, x + dx, y0 + 0.2, s2 * (wm + 0.02), vision, 0.01); gr.rotation.x = 0; gr.rotation.z = 0.7 * Math.sign(dx); }
+      for (const dx of [-0.25, 0.25]) { const gr = boite(0.14, 0.03, 0.03, M.noir, x + dx, y0 + 0.62, s2 * (wm - 0.17), vision, 0.01); gr.rotation.x = s2 * 0.83; }
     }
+    // logo Freescan sur chaque flanc
+    const logo = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.22), new THREE.MeshStandardMaterial({ map: logoTex, transparent: true, roughness: 0.5, metalness: 0.2 }));
+    logo.position.set(-LONG_VISION / 4, y0 + 0.29, s2 * (wm + 0.012)); logo.rotation.y = s2 > 0 ? 0 : Math.PI; vision.add(logo);
   }
-  const fente = boite(LONG_TUNNEL - 0.6, 0.012, LARG - 0.25, M.led, 0, Y + y0 - 0.005, 0, vision, 0.004); fente.castShadow = false;
-  const tour = new THREE.Group(); vision.add(tour); tour.position.set(LONG_TUNNEL / 2 - 0.2, Y + y0 + ht, -wt + 0.2);
-  cylindre(0.02, 0.25, M.inoxBrosse, tour).position.y = 0.12;
-  [['#2fd06a', 0.3, 1.2], ['#ffb020', 0.38, 0.12], ['#ff3b30', 0.46, 0.12]].forEach(([c, y, e]) => {
-    const l = cylindre(0.05, 0.075, new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: e }), tour, 20); l.position.y = y;
+  const fente = boite(LONG_VISION - 0.3, 0.01, LARG - 0.25, M.led, 0, y0 - 0.004, 0, vision, 0.004); fente.castShadow = false;
+  const tour = new THREE.Group(); vision.add(tour); tour.position.set(LONG_VISION / 2 - 0.2, y0 + 0.78, -wt + 0.15);
+  cylindre(0.02, 0.22, M.inoxBrosse, tour).position.y = 0.11;
+  [['#2fd06a', 0.27, 1.0], ['#ffb020', 0.35, 0.1], ['#ff3b30', 0.43, 0.1]].forEach(([c, y, e]) => {
+    const l = cylindre(0.045, 0.07, new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: e }), tour, 20); l.position.y = y;
   });
-  const col = new THREE.Group(); vision.add(col); col.position.set(LONG_TUNNEL / 2 + 0.35, 0, LARG / 2 + 0.15);
-  boite(0.42, Y + 1.1, 0.3, M.inoxBrosse, 0, (Y + 1.1) / 2, 0, col, 0.03);
-  const tex = new THREE.TextureLoader().load('media/ui-suivi.jpg'); tex.colorSpace = THREE.SRGBColorSpace;
-  const ecr = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.24), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
-  ecr.position.set(0, Y + 0.75, 0.155); col.add(ecr);
+}
+const spectral = new THREE.Group(); scene.add(spectral); spectral.position.x = X_SPECTRAL;
+{
+  const y0 = Y + 0.1, h = 0.72, w = LARG + 0.24;
+  boite(LONG_SPECTRAL, h, w, M.inoxBrosse, 0, y0 + h / 2, 0, spectral, 0.035);
+  boite(LONG_SPECTRAL + 0.04, 0.04, w + 0.04, M.inox, 0, y0 + h + 0.02, 0, spectral, 0.015);
+  for (const s2 of [-1, 1]) {
+    boite(LONG_SPECTRAL - 0.14, h - 0.16, 0.012, M.inox, 0, y0 + h / 2, s2 * (w / 2 + 0.006), spectral, 0.006);
+    for (const dx of [-0.35, 0.35]) boite(0.03, 0.12, 0.035, M.noir, dx, y0 + h / 2, s2 * (w / 2 + 0.025), spectral, 0.01);
+    // plaque « SPECTRAL »
+    const c = document.createElement('canvas'); c.width = 512; c.height = 96; const g2 = c.getContext('2d');
+    g2.fillStyle = '#0d1424'; g2.fillRect(0, 0, 512, 96); g2.fillStyle = '#7db4ff'; g2.font = '600 54px Arial'; g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.fillText('SPECTRAL', 256, 50);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+    const pl = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.11), new THREE.MeshStandardMaterial({ map: t, roughness: 0.4 }));
+    pl.position.set(0, y0 + h - 0.13, s2 * (w / 2 + 0.014)); pl.rotation.y = s2 > 0 ? 0 : Math.PI; spectral.add(pl);
+  }
+  // ventilation sur le dessus et fente de mesure (lumière violette discrète)
+  boite(0.4, 0.08, 0.4, M.noir, 0.25, y0 + h + 0.08, -0.5, spectral, 0.02);
+  const fs = boite(0.04, 0.01, LARG - 0.25, new THREE.MeshStandardMaterial({ color: '#b04dff', emissive: '#a040ff', emissiveIntensity: 1.2 }), 0, y0 - 0.004, 0, spectral, 0.003); fs.castShadow = false;
 }
 const lumTunnel = new THREE.PointLight('#dfeeff', 1.2, 2.5, 2); lumTunnel.position.set(0, Y + 0.2, 0); vision.add(lumTunnel);
 // armoire électrique à côté de la ligne, avec climatiseur
@@ -479,7 +499,8 @@ const ETAPES = [
   { pos: [-9.2, 2.4, 3.6], vise: [-9.8, 1.0, 0], ancre: [-9.6, 1.05, 0.5] },
   { pos: [-6.4, 2.7, 2.9], vise: [-7.0, 1.15, 0], ancre: [-6.7, 1.32, 0.3] },
   { pos: [-4.75, 2.25, 1.5], vise: [-5.35, 1.15, 0.05], ancre: [-5.0, 1.3, 0.4] },
-  { pos: [1.6, 3.0, 4.8], vise: [-2.1, 1.7, 0], ancre: [-2.1, 2.45, 1.7] },
+  { pos: [-1.6, 2.5, 4.0], vise: [-3.0, 1.6, 0], ancre: [-3.0, 2.15, 1.3] },
+  { pos: [1.4, 2.3, 3.4], vise: [-0.3, 1.6, 0], ancre: [-0.4, 2.0, 1.5] },
   { pos: [3.0, 1.5, 2.8], vise: [2.3, 0.95, 1.0], ancre: [2.25, 0.75, 1.6] },
   { pos: [8.8, 2.8, 5.8], vise: [5.8, 0.5, 2.0], ancre: [5.8, 0.62, 2.55] },
   { pos: [-5.0, 2.1, -4.6], vise: [-6.4, 1.6, -2.4], ancre: [-6.4, 2.2, -2.6] },
