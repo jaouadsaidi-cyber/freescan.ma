@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -234,20 +235,34 @@ boite(longAlign, 0.24, 0.05, M.inox, (X_ELEV_HAUT + X_ALIGN_FIN) / 2, Y + 0.06, 
 boite(longAlign, 0.24, 0.05, M.inox, (X_ELEV_HAUT + X_ALIGN_FIN) / 2, Y + 0.06, LARG / 2, aligneur);
 const barre = boite(0.06, 0.06, LARG + 0.2, M.inox, X_ALIGN_FIN - 0.25, Y + 0.28, 0, aligneur);
 
-// ---------- 4. chaînes de godets (instanciées) ----------
+// ---------- 4. chaînes à diabolos (instanciées) ----------
+// chaque ligne : une chaîne (maillons blancs) dont chaque axe porte deux diabolos noirs à couronne dentée ;
+// la tomate repose entre deux axes consécutifs et tourne avec les diabolos
 const groupeGodets = new THREE.Group(); scene.add(groupeGodets);
-const godetGeo = (() => {
-  // godet : coque bleue en U, lèvres inox ajoutées à part
-  const s = new THREE.Shape();
-  s.moveTo(-0.1, 0.11); s.lineTo(-0.1, 0.02); s.quadraticCurveTo(-0.1, 0, -0.08, 0); s.lineTo(0.08, 0); s.quadraticCurveTo(0.1, 0, 0.1, 0.02);
-  s.lineTo(0.1, 0.11); s.lineTo(0.085, 0.11); s.lineTo(0.085, 0.02); s.lineTo(-0.085, 0.02); s.lineTo(-0.085, 0.11);
-  const g = new THREE.ExtrudeGeometry(s, { depth: 0.13, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.004, bevelSegments: 2 });
-  g.rotateY(Math.PI / 2); g.translate(-0.065, 0, 0); return g;
+const PAS_AXE = PAS / 2;
+const diaboloGeo = (() => {
+  const prof = [[0.0, -0.035], [0.029, -0.035], [0.031, -0.031], [0.024, -0.012], [0.02, 0.0], [0.024, 0.012], [0.031, 0.031], [0.029, 0.035], [0.0, 0.035]]
+    .map(([r, y]) => new THREE.Vector2(r, y));
+  const parts = [];
+  for (const z of [-0.06, 0.06]) {
+    const d = new THREE.LatheGeometry(prof, 22); d.rotateX(Math.PI / 2); d.translate(0, 0, z); parts.push(d);
+    const cour = new THREE.CylinderGeometry(0.034, 0.034, 0.008, 18); cour.rotateX(Math.PI / 2); cour.translate(0, 0, z - Math.sign(z) * 0.037); parts.push(cour);
+  }
+  const axe = new THREE.CylinderGeometry(0.007, 0.007, 0.2, 10); axe.rotateX(Math.PI / 2); parts.push(axe);
+  return mergeGeometries(parts.map(g => g.toNonIndexed ? g.toNonIndexed() : g));
 })();
-const NB_G = Math.ceil(L / PAS) + 2;
-const godets = new THREE.InstancedMesh(godetGeo, M.bleu, NB_G * NB * 2);
-const rouleaux = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.022, 0.022, 0.15, 14).rotateX(Math.PI / 2), M.noir, NB_G * NB * 2);
+const maillonGeo = (() => {
+  const parts = [];
+  for (const z of [-0.016, 0.016]) { const pl = new THREE.BoxGeometry(PAS_AXE * 0.98, 0.026, 0.005); pl.translate(0, 0, z); parts.push(pl.toNonIndexed()); }
+  const ro = new THREE.CylinderGeometry(0.009, 0.009, 0.028, 12); ro.rotateX(Math.PI / 2); ro.translate(PAS_AXE / 2, 0, 0); parts.push(ro.toNonIndexed());
+  return mergeGeometries(parts);
+})();
+const NB_G = Math.ceil(L / PAS_AXE) + 2;
+const godets = new THREE.InstancedMesh(diaboloGeo, new THREE.MeshPhysicalMaterial({ color: '#16181c', roughness: 0.38, clearcoat: 0.4 }), NB_G * NB * 2);
+const rouleaux = new THREE.InstancedMesh(maillonGeo, new THREE.MeshPhysicalMaterial({ color: '#e7eaee', roughness: 0.3, metalness: 0.2 }), NB_G * NB * 2);
 for (const m of [godets, rouleaux]) { m.frustumCulled = false; m.castShadow = true; m.receiveShadow = true; groupeGodets.add(m); }
+// rails de guidage sous chaque chaîne
+for (const z of VOIES) boite(L, 0.02, 0.05, M.inoxSombre, xm, Y - 0.025, z, groupeGodets, 0.006);
 
 // ---------- 5. tunnel de vision (profil hexagonal fin) + 5b. caisson spectral ----------
 // dans l'espace réservé : tunnel de vision puis caisson spectral (SWIR), rectangulaire
@@ -363,7 +378,7 @@ pupitre.rotation.y = Math.PI - 0.3;
 // ---------- tomates cerises ----------
 const COULEURS = ['#c8150f', '#dd2a14', '#ee5a1c', '#f08a2a', '#9aa83a'];   // de très mûre à tournante
 const MAX = 2800;
-const fruitMat = new THREE.MeshPhysicalMaterial({ roughness: 0.22, clearcoat: 0.9, clearcoatRoughness: 0.12, sheen: 0.2 });
+const fruitMat = new THREE.MeshPhysicalMaterial({ roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.25 });
 const fruits = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 22, 16), fruitMat, MAX);
 fruits.frustumCulled = false; fruits.castShadow = true; fruits.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 scene.add(fruits);
@@ -417,7 +432,7 @@ function majFruits(dt, t) {
         p3.set(x + Math.sin(t * 7 + p.ph) * 0.015 * (1 - k), Y + 0.045, THREE.MathUtils.lerp(p.z0, zV, k));
         placer(i, p, p3, p.ph, 0, -(x / 0.045) * 0.5);
       } else {                                  // dans son godet, il tourne sur les rouleaux
-        p3.set(x, Y + 0.075, zV);
+        p3.set(x, Y + 0.068, zV);
         placer(i, p, p3, -(x / 0.045) * 0.7 + p.ph, 0, 0);
         const xs = p.st >= 0 ? STATIONS[p.st] : X_FIN + 0.2;
         if (x >= xs) {
@@ -458,18 +473,19 @@ function majFruits(dt, t) {
 }
 
 function majGodets() {
-  let a = 0; const dec = ((distance % PAS) + PAS) % PAS;
+  let a = 0; const dec = ((distance % PAS_AXE) + PAS_AXE) % PAS_AXE;
+  const qa = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -distance / 0.022);
+  const qr = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI);
+  e3.set(1, 1, 1);
   for (let v = 0; v < NB; v++) for (let j = 0; j < NB_G; j++) {
-    const x = X_ALIGN_FIN + dec + j * PAS - PAS;
-    if (x > X_ALIGN_FIN - 0.08 && x < X_FIN) {
-      p3.set(x, Y, VOIES[v]); q.identity(); e3.set(1, 1, 1); m4.compose(p3, q, e3); godets.setMatrixAt(a, m4);
-      p3.set(x, Y + 0.035, VOIES[v]); q.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -distance / 0.022); m4.compose(p3, q, e3); rouleaux.setMatrixAt(a, m4);
-      a++;
+    const x = X_ALIGN_FIN + dec + j * PAS_AXE - PAS_AXE;
+    if (x > X_ALIGN_FIN - 0.04 && x < X_FIN) {
+      p3.set(x, Y + 0.02, VOIES[v]); m4.compose(p3, qa, e3); godets.setMatrixAt(a, m4);
+      q.identity(); m4.compose(p3, q, e3); rouleaux.setMatrixAt(a, m4); a++;
     }
-    const xr = X_FIN - dec - j * PAS;           // brin de retour
+    const xr = X_FIN - dec - j * PAS_AXE;       // brin de retour
     if (xr > X_ALIGN_FIN && xr < X_FIN) {
-      p3.set(xr, Y - 0.32, VOIES[v]); q.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI); m4.compose(p3, q, e3); godets.setMatrixAt(a, m4);
-      p3.set(xr, Y - 0.36, VOIES[v]); m4.compose(p3, q, e3); rouleaux.setMatrixAt(a, m4); a++;
+      p3.set(xr, Y - 0.3, VOIES[v]); m4.compose(p3, qr, e3); godets.setMatrixAt(a, m4); rouleaux.setMatrixAt(a, m4); a++;
     }
   }
   godets.count = rouleaux.count = a;
@@ -498,7 +514,7 @@ const ETAPES = [
   { pos: [-17.6, 3.8, 5.0], vise: [-13.8, 1.3, 0], ancre: [-12.9, 2.0, 0.6] },
   { pos: [-9.2, 2.4, 3.6], vise: [-9.8, 1.0, 0], ancre: [-9.6, 1.05, 0.5] },
   { pos: [-6.4, 2.7, 2.9], vise: [-7.0, 1.15, 0], ancre: [-6.7, 1.32, 0.3] },
-  { pos: [-4.75, 2.25, 1.5], vise: [-5.35, 1.15, 0.05], ancre: [-5.0, 1.3, 0.4] },
+  { pos: [-4.3, 2.0, 1.25], vise: [-5.3, 1.2, 0.0], ancre: [-5.0, 1.27, 0.27] },
   { pos: [-1.6, 2.5, 4.0], vise: [-3.0, 1.6, 0], ancre: [-3.0, 2.15, 1.3] },
   { pos: [1.4, 2.3, 3.4], vise: [-0.3, 1.6, 0], ancre: [-0.4, 2.0, 1.5] },
   { pos: [3.0, 1.5, 2.8], vise: [2.3, 0.95, 1.0], ancre: [2.25, 0.75, 1.6] },
