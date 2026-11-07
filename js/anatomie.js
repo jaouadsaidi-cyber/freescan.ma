@@ -318,19 +318,16 @@ for (const z of VOIES) boite(L, 0.02, 0.05, M.inoxSombre, xm, Y - 0.025, z, grou
 // ---------- 5. coffret électrique, cellule de vision, cellule SWIR (dans cet ordre) ----------
 // d'après les photos de la ligne : capot de vision hexagonal qui déborde de la chaîne, tiroir étroit en bas
 // (deux poignées), raccord en « V » entre les deux ; cellule SWIR rectangulaire juste après ; coffret à côté de l'entrée
-// le profil hexagonal est dans le plan du défilement ; le capot est extrudé en travers de la ligne
-const H_VISION = 1.85, LONG_VISION = 2.1, X_VISION = -4.2 + LONG_VISION / 2;
-const LONG_SPECTRAL = 1.5, X_SPECTRAL = X_VISION + LONG_VISION / 2 + 0.2 + LONG_SPECTRAL / 2;
+const LONG_VISION = 3.6, H_VISION = 1.85, X_VISION = -4.2 + LONG_VISION / 2;
+const LONG_SPECTRAL = 1.6, X_SPECTRAL = -0.5 + LONG_SPECTRAL / 2;
 const vision = new THREE.Group(); scene.add(vision); vision.position.x = X_VISION;
 const logoTex = new THREE.TextureLoader().load('media/logo-freescan.png'); logoTex.colorSpace = THREE.SRGBColorSpace;
 const yV = Y + 0.08;
-// repère local du capot (tourné de 90°) : z local = le long de la ligne, x local = en travers
 const PV = {
-  zb: 0.9, zm: LONG_VISION / 2, zt: 0.58 * LONG_VISION / 2,
+  zb: LARG / 2 + 0.03, zm: LARG / 2 + 0.26, zt: 0.58 * (LARG / 2 + 0.26),
   h1: 0.3 * H_VISION, h2: 0.38 * H_VISION, h3: 0.72 * H_VISION, h: H_VISION,
-  lt: LARG / 2 + 0.25, lb: LARG / 2 + 0.2,
+  lt: LONG_VISION / 2, lb: LONG_VISION / 2 - 0.05,
 };
-vision.rotation.y = Math.PI / 2;
 function demiLong(y) { return y >= PV.h1 ? PV.lt : PV.lb; }
 function geoCaisson() {
   // contour (z, y) : tiroir vertical étroit, « V » qui s'évase, flanc vertical, chanfrein, dessus plat
@@ -368,19 +365,20 @@ function geoCaisson() {
   // logo sur la face d'entrée et sur les flancs
   const logoBout = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 0.45), new THREE.MeshStandardMaterial({ map: logoTex, transparent: true, roughness: 0.5 }));
   logoBout.position.set(-PV.lt - 0.012, yV + (PV.h2 + PV.h3) / 2 + 0.12, 0); logoBout.rotation.y = -Math.PI / 2; vision.add(logoBout);
-  const logoBout2 = logoBout.clone(); logoBout2.position.x = PV.lt + 0.012; logoBout2.rotation.y = Math.PI / 2; vision.add(logoBout2);
   for (const s2 of [-1, 1]) {
     for (const x of [-PV.lt / 2, PV.lt / 2]) {
       boite(PV.lt - 0.12, PV.h3 - PV.h2 - 0.1, 0.008, M.inoxBrosse, x, yV + (PV.h2 + PV.h3) / 2, s2 * (PV.zm + 0.005), vision, 0.004);
       for (const dx of [-0.38, 0.38]) { const gr = boite(0.2, 0.04, 0.035, M.noir, x + dx, yV + PV.h2 + 0.18, s2 * (PV.zm + 0.025), vision, 0.012); gr.rotation.z = 0.7 * Math.sign(dx); }
     }
+    const logo = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.32), new THREE.MeshStandardMaterial({ map: logoTex, transparent: true, roughness: 0.5, metalness: 0.2 }));
+    logo.position.set(-PV.lt / 2, yV + PV.h3 - 0.3, s2 * (PV.zm + 0.012)); logo.rotation.y = s2 > 0 ? 0 : Math.PI; vision.add(logo);
   }
-  const fente = boite(LARG - 0.2, 0.01, 2 * PV.zb - 0.3, M.led, 0, yV - 0.004, 0, vision, 0.004); fente.castShadow = false;
+  const fente = boite(2 * PV.lb - 0.2, 0.01, LARG - 0.2, M.led, 0, yV - 0.004, 0, vision, 0.004); fente.castShadow = false;
 }
 // cellule SWIR : caisson rectangulaire, porte, petit écran, arrêt d'urgence
 const spectral = new THREE.Group(); scene.add(spectral); spectral.position.x = X_SPECTRAL;
 {
-  const y0 = Y + 0.08, h = 0.86 * H_VISION, w = LARG + 0.4;
+  const y0 = Y + 0.08, h = 0.86 * H_VISION, w = 2 * PV.zb + 0.25;
   boite(LONG_SPECTRAL, h, w, M.inoxBrosse, 0, y0 + h / 2, 0, spectral, 0.03);
   for (const s2 of [-1, 1]) {
     boite(LONG_SPECTRAL * 0.55, h - 0.2, 0.012, M.inox, -LONG_SPECTRAL * 0.18, y0 + h / 2, s2 * (w / 2 + 0.006), spectral, 0.006);
@@ -405,7 +403,7 @@ const spectral = new THREE.Group(); scene.add(spectral); spectral.position.x = X
 const lumTunnel = new THREE.PointLight('#dfeeff', 1.2, 2.5, 2); lumTunnel.position.set(0, Y + 0.2, 0); vision.add(lumTunnel);
 // coffret électrique : colonne inox à côté de l'entrée de la cellule, face vers l'amont
 const pupitre = new THREE.Group(); scene.add(pupitre);
-pupitre.position.set(X_VISION - LONG_VISION / 2 - 0.05, 0, -(PV.lt + 0.5));
+pupitre.position.set(X_VISION - LONG_VISION / 2 - 0.05, 0, -(PV.zm + 0.5));
 {
   const H = 2.75, Wz = 0.85, Dx = 0.7;
   boite(Dx, H, Wz, M.inoxBrosse, 0, H / 2, 0, pupitre, 0.03);
@@ -611,13 +609,14 @@ const ETAPES = [
   { pos: [-6.4, 2.4, 2.2], vise: [-7.0, 1.15, 0], ancre: [-6.7, 1.32, 0.2] },
   { pos: [-4.75, 1.62, 0.55], vise: [-5.35, 1.22, 0.0], ancre: [-5.05, 1.25, 0.09] },
   { pos: [-7.6, 2.1, -3.2], vise: [-4.6, 1.7, -1.3], ancre: [-4.62, 1.5, -1.32] },
-  { pos: [-2.0, 2.5, 5.0], vise: [-3.15, 2.0, 0.4], ancre: [-3.15, 2.75, 1.08] },
-  { pos: [2.6, 2.3, 3.6], vise: [-0.1, 1.8, 0], ancre: [0.2, 2.35, 1.03] },
+  { pos: [2.0, 2.9, 5.2], vise: [-2.4, 1.9, 0], ancre: [-2.6, 2.6, 1.07] },
+  { pos: [2.9, 2.2, 3.4], vise: [0.3, 1.8, 0], ancre: [0.55, 2.35, 1.0] },
   { pos: [3.0, 1.5, 2.3], vise: [2.3, 0.95, 0.6], ancre: [2.25, 0.75, 1.05] },
   { pos: [8.6, 2.8, 5.0], vise: [5.8, 0.5, 1.4], ancre: [5.8, 0.62, 2.0] },
 ];
 const camPos = new THREE.Vector3(), camVise = new THREE.Vector3();
 let actif = -1, avance = 0, visible = false;
+let vueForcee = null;   // vue imposée par le crochet de contrôle (captures)
 
 function majCamera(dt) {
   const n = ETAPES.length - 1, s = THREE.MathUtils.clamp(avance * n, 0, n);
@@ -628,6 +627,7 @@ function majCamera(dt) {
   p.y += Math.sin(e * Math.PI) * 1.4;
   const k = 1 - Math.pow(0.0015, dt);
   camPos.lerp(p, k); camVise.lerp(v, k); camera.position.copy(camPos); camera.lookAt(camVise);
+  if (vueForcee) { camera.position.fromArray(vueForcee.pos); camera.up.fromArray(vueForcee.haut || [0, 1, 0]); camera.lookAt(new THREE.Vector3().fromArray(vueForcee.vise)); camera.up.set(0, 1, 0); }
   const a = Math.round(s);
   if (a !== actif) {
     actif = a;
@@ -731,4 +731,7 @@ for (const p of pool) if (p.etat === 'caisse') p.t = Math.random() * 10;
 function image() { requestAnimationFrame(image); const dt = Math.min(0.05, horloge.getDelta()); if (visible) avancer(dt); }
 image();
 // crochet de contrôle (rendu sans écran)
-window.__freescan3d = { calculer(n = 60, dt = 1 / 30) { lireDefilement(); for (let k = 0; k < n; k++) avancer(dt); } };
+window.__freescan3d = {
+  calculer(n = 60, dt = 1 / 30) { lireDefilement(); for (let k = 0; k < n; k++) avancer(dt); },
+  vue(v) { vueForcee = v; if (v && v.fov) { camera.fov = v.fov; camera.updateProjectionMatrix(); } if (v && 'brouillard' in v) scene.fog = v.brouillard ? new THREE.Fog('#060d1a', 22, 46) : null; },
+};
