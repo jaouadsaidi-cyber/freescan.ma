@@ -1,480 +1,530 @@
-// Freescan — la machine pièce par pièce, en 3D temps réel (three.js).
-// La caméra suit le défilement de la section #anatomie ; un fruit va de la caisse au bac.
+// Freescan tomate cerise — la ligne pièce par pièce, en 3D temps réel (three.js).
+// Calquée sur la machine réelle : élévateur à tasseaux, aligneur à diviseurs inox, 8 lignes = 8 chaînes
+// de godets bleus (rouleaux de rotation), tunnel de vision, stations ST1–ST20 à tapis transversaux, caisses.
+// La caméra suit le défilement de la section #anatomie.
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+import { Reflector } from 'three/addons/objects/Reflector.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 const section = document.getElementById('anatomie');
 const canvas = document.getElementById('scene3d');
 const etiquette = document.getElementById('etiquette3d');
 const cartes = [...section.querySelectorAll('.etape3d')];
 const sommaire = [...section.querySelectorAll('.sommaire3d button')];
+const leger = matchMedia('(max-width: 900px)').matches;
 
 // ---------- rendu ----------
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, leger ? 1.5 : 1.75));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = 0.82;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+RectAreaLightUniformsLib.init();
 
 const scene = new THREE.Scene();
-const FOND = new THREE.Color('#0a1120');
-scene.background = FOND;
-scene.fog = new THREE.Fog(FOND, 18, 42);
+// studio bleu nuit : dégradé vertical
+{
+  const c = document.createElement('canvas'); c.width = 4; c.height = 512;
+  const g = c.getContext('2d'); const d = g.createLinearGradient(0, 0, 0, 512);
+  d.addColorStop(0, '#0c1a33'); d.addColorStop(0.55, '#081224'); d.addColorStop(1, '#03060c');
+  g.fillStyle = d; g.fillRect(0, 0, 4, 512);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; scene.background = t;
+}
+scene.fog = new THREE.Fog('#060d1a', 22, 46);
 const pmrem = new THREE.PMREMGenerator(renderer);
-scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.03).texture;
+scene.environmentIntensity = 0.4;
 
-const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 100);
+const camera = new THREE.PerspectiveCamera(36, 1, 0.05, 120);
 
-scene.add(new THREE.HemisphereLight('#bcd4ff', '#1a1410', 0.55));
-const soleil = new THREE.DirectionalLight('#ffffff', 2.2);
-soleil.position.set(4, 10, 6);
-soleil.castShadow = true;
-soleil.shadow.mapSize.set(2048, 2048);
-Object.assign(soleil.shadow.camera, { left: -14, right: 14, top: 8, bottom: -8, near: 1, far: 30 });
-soleil.shadow.bias = -0.0004;
-scene.add(soleil);
-const contre = new THREE.DirectionalLight('#7db4ff', 0.8);
-contre.position.set(-6, 4, -8);
-scene.add(contre);
+// lumière : clé froide au-dessus, liserés bleus derrière, débouchage faible
+scene.add(new THREE.HemisphereLight('#9fc0ff', '#0b0f18', 0.35));
+const cle = new THREE.DirectionalLight('#e9f1ff', 1.7);
+cle.position.set(3, 12, 7); cle.castShadow = true;
+cle.shadow.mapSize.set(leger ? 1024 : 2048, leger ? 1024 : 2048);
+Object.assign(cle.shadow.camera, { left: -18, right: 16, top: 9, bottom: -9, near: 1, far: 34 });
+cle.shadow.bias = -0.0003; cle.shadow.radius = 4;
+scene.add(cle);
+for (const [x, z, w] of [[-2, -4.2, 26], [-2, 4.2, 26]]) {
+  const r = new THREE.RectAreaLight('#3f8cff', 1.1, w, 0.8); r.position.set(x, 3.4, z); r.lookAt(x, 1, 0); scene.add(r);
+}
+const contre = new THREE.DirectionalLight('#5aa2ff', 1.1); contre.position.set(-8, 5, -10); scene.add(contre);
 
 // ---------- matériaux ----------
-const inox = new THREE.MeshStandardMaterial({ color: '#c9d1da', metalness: 0.92, roughness: 0.32 });
-const inoxBrosse = new THREE.MeshStandardMaterial({ color: '#9aa4b0', metalness: 0.85, roughness: 0.48 });
-const bleu = new THREE.MeshStandardMaterial({ color: '#1f5fd1', metalness: 0.1, roughness: 0.45 });
-const noir = new THREE.MeshStandardMaterial({ color: '#15181d', metalness: 0.4, roughness: 0.5 });
-const vitre = new THREE.MeshPhysicalMaterial({ color: '#9fc2ff', metalness: 0, roughness: 0.05, transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false });
-const led = new THREE.MeshStandardMaterial({ color: '#ffffff', emissive: '#dff0ff', emissiveIntensity: 2.2 });
-const caisseMat = new THREE.MeshStandardMaterial({ color: '#f4f6f8', roughness: 0.55, metalness: 0 });
-const robotMat = new THREE.MeshStandardMaterial({ color: '#e8ecf1', metalness: 0.3, roughness: 0.35 });
-const robotAccent = new THREE.MeshStandardMaterial({ color: '#ff5a3c', metalness: 0.2, roughness: 0.4 });
+const M = {
+  inox: new THREE.MeshPhysicalMaterial({ color: '#cfd6de', metalness: 1, roughness: 0.26, clearcoat: 0.25, clearcoatRoughness: 0.4 }),
+  inoxBrosse: new THREE.MeshPhysicalMaterial({ color: '#aab3be', metalness: 1, roughness: 0.42 }),
+  inoxSombre: new THREE.MeshPhysicalMaterial({ color: '#7d8794', metalness: 1, roughness: 0.38 }),
+  bleu: new THREE.MeshPhysicalMaterial({ color: '#1652c9', metalness: 0, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.18 }),
+  bleuTapis: new THREE.MeshPhysicalMaterial({ color: '#1a5fd6', metalness: 0, roughness: 0.42, clearcoat: 0.6 }),
+  noir: new THREE.MeshStandardMaterial({ color: '#111419', metalness: 0.5, roughness: 0.45 }),
+  caisse: new THREE.MeshPhysicalMaterial({ color: '#d9dee4', roughness: 0.55, clearcoat: 0.1 }),
+  robot: new THREE.MeshPhysicalMaterial({ color: '#eef1f5', metalness: 0.2, roughness: 0.3, clearcoat: 0.8 }),
+  accent: new THREE.MeshPhysicalMaterial({ color: '#ff5a3c', roughness: 0.35, clearcoat: 0.8 }),
+  led: new THREE.MeshStandardMaterial({ color: '#ffffff', emissive: '#e6f3ff', emissiveIntensity: 3 }),
+  ledBleue: new THREE.MeshStandardMaterial({ color: '#7db4ff', emissive: '#4f9bff', emissiveIntensity: 2.4 }),
+  tube: new THREE.MeshPhysicalMaterial({ color: '#2b8cff', roughness: 0.3, clearcoat: 1, transmission: 0.2 }),
+};
 
-function boite(w, h, d, mat, x = 0, y = 0, z = 0, parent = scene) {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+function boite(w, h, d, mat, x = 0, y = 0, z = 0, parent = scene, r = null) {
+  const rad = r ?? Math.min(0.03, Math.min(w, h, d) * 0.22);
+  const m = new THREE.Mesh(new RoundedBoxGeometry(w, h, d, 3, rad), mat);
   m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; parent.add(m); return m;
 }
-function cylindre(r, h, mat, parent = scene, seg = 24) {
+function cylindre(r, h, mat, parent = scene, seg = 28) {
   const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, seg), mat);
   m.castShadow = true; m.receiveShadow = true; parent.add(m); return m;
 }
+// prisme « toit » (diviseur) ou « V » (goulotte) le long de X
+function prisme(longueur, largeur, hauteur, mat, enV = false) {
+  const s = new THREE.Shape();
+  if (enV) { s.moveTo(-largeur / 2, hauteur); s.lineTo(0, 0); s.lineTo(largeur / 2, hauteur); s.lineTo(largeur / 2 - 0.01, hauteur); s.lineTo(0, 0.012); s.lineTo(-largeur / 2 + 0.01, hauteur); }
+  else { s.moveTo(-largeur / 2, 0); s.lineTo(0, hauteur); s.lineTo(largeur / 2, 0); }
+  const g = new THREE.ExtrudeGeometry(s, { depth: longueur, bevelEnabled: false });
+  g.rotateY(Math.PI / 2); g.translate(-longueur / 2, 0, 0);
+  const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = true; return m;
+}
 
-// ---------- géométrie de la ligne ----------
-const VOIES = [-0.75, -0.25, 0.25, 0.75];
-const Y_GODET = 0.62;          // hauteur des fruits dans les godets
-const X_ALIGN_DEBUT = -7.6, X_ALIGN_FIN = -4.6;
-const X_FIN = 8.9;             // fin de la chaîne de godets
-const PAS = 0.34;              // pas entre godets
-const SORTIES = [3.7, 4.55, 5.4, 6.25, 7.1, 7.95];
-const X_VISION = -1.0, X_SWIR = 2.05;
+// ---------- géométrie de la ligne (mètres) ----------
+const Y = 1.2;                                  // hauteur du fond des godets
+const NB = 8, PAS_Z = 0.27;
+const VOIES = Array.from({ length: NB }, (_, i) => (i - (NB - 1) / 2) * PAS_Z);
+const X_ELEV_BAS = -11.3, X_ELEV_HAUT = -8.2;
+const X_ALIGN_FIN = -5.6;                       // début des chaînes de godets
+const X_FIN = 9.4;
+const PAS = 0.16;                               // pas des godets
+const X_TUNNEL = -2.7, LONG_TUNNEL = 3.2;
+const X_HOTTE = 0.3, LONG_HOTTE = 2.6;
+const STATIONS = Array.from({ length: 10 }, (_, i) => 2.2 + i * 0.72); // ST par côté
+const LARG = NB * PAS_Z + 0.5;
 
-// sol
-const sol = new THREE.Mesh(new THREE.PlaneGeometry(80, 40), new THREE.MeshStandardMaterial({ color: '#141b27', roughness: 0.9, metalness: 0 }));
-sol.rotation.x = -Math.PI / 2; sol.position.y = -1.1; sol.receiveShadow = true; scene.add(sol);
-const grille = new THREE.GridHelper(60, 60, '#24324a', '#1a2436');
-grille.position.y = -1.095; scene.add(grille);
+// sol miroir atténué
+const sol = new Reflector(new THREE.PlaneGeometry(90, 50), { textureWidth: leger ? 512 : 1024, textureHeight: leger ? 512 : 1024, color: 0x1c2638 });
+sol.rotation.x = -Math.PI / 2; sol.position.y = -0.001; scene.add(sol);
+const voile = new THREE.Mesh(new THREE.PlaneGeometry(90, 50), new THREE.MeshStandardMaterial({ color: '#070c16', roughness: 0.6, metalness: 0.2, transparent: true, opacity: 0.86 }));
+voile.rotation.x = -Math.PI / 2; voile.position.y = 0.002; voile.receiveShadow = true; scene.add(voile);
 
-// châssis
+// ---------- châssis principal et goulottes inox ----------
 const chassis = new THREE.Group(); scene.add(chassis);
-boite(X_FIN - X_ALIGN_FIN + 0.6, 0.12, 0.08, inox, (X_FIN + X_ALIGN_FIN) / 2, 0.42, -1.08, chassis);
-boite(X_FIN - X_ALIGN_FIN + 0.6, 0.12, 0.08, inox, (X_FIN + X_ALIGN_FIN) / 2, 0.42, 1.08, chassis);
-boite(X_FIN - X_ALIGN_FIN + 0.6, 0.5, 2.1, inoxBrosse, (X_FIN + X_ALIGN_FIN) / 2, 0.0, 0, chassis);
-for (let x = X_ALIGN_FIN; x <= X_FIN + 0.1; x += 2.2) for (const z of [-1, 1]) boite(0.1, 1.1, 0.1, inox, x, -0.6, z, chassis);
+const L = X_FIN - X_ALIGN_FIN;
+const xm = (X_FIN + X_ALIGN_FIN) / 2;
+boite(L + 0.3, 0.16, 0.08, M.inox, xm, Y - 0.05, -LARG / 2, chassis);
+boite(L + 0.3, 0.16, 0.08, M.inox, xm, Y - 0.05, LARG / 2, chassis);
+boite(L + 0.3, 0.06, LARG, M.inoxSombre, xm, Y - 0.42, 0, chassis);
+for (let x = X_ALIGN_FIN; x <= X_FIN + 0.05; x += 1.5) for (const z of [-LARG / 2 + 0.06, LARG / 2 - 0.06]) boite(0.08, Y - 0.42, 0.08, M.inox, x, (Y - 0.42) / 2, z, chassis);
+// goulottes en V entre les lignes (vues de dessus : bandes inox)
+for (let i = 0; i <= NB; i++) {
+  const z = (i - NB / 2) * PAS_Z;
+  const g = prisme(L, i === 0 || i === NB ? 0.14 : 0.13, 0.11, M.inox, true); g.position.set(xm, Y + 0.02, z); chassis.add(g);
+}
 
 // ---------- 1. robot de chargement + trémie ----------
 const groupeRobot = new THREE.Group(); scene.add(groupeRobot);
-const tremie = new THREE.Group(); scene.add(tremie);
-{
-  // trémie : quatre parois inclinées
-  const t = tremie; t.position.set(-8.75, 0.35, 0);
-  boite(1.5, 0.06, 2.1, inox, 0, -0.25, 0, t).rotation.z = 0.25;
-  const p1 = boite(1.6, 0.9, 0.06, inox, 0, 0.1, -1.05, t); const p2 = boite(1.6, 0.9, 0.06, inox, 0, 0.1, 1.05, t);
-  const p3 = boite(0.06, 1.1, 2.1, inox, -0.8, 0.2, 0, t);
-  for (let x = -0.6; x < 0.8; x += 0.5) for (const z of [-0.9, 0.9]) boite(0.08, 1.4, 0.08, inox, x, -0.85, z, t);
-}
-// caisses en attente (pile)
-const pileCaisses = new THREE.Group(); scene.add(pileCaisses);
 function caisse(parent, plein = null) {
   const g = new THREE.Group(); parent.add(g);
-  boite(0.6, 0.04, 0.4, caisseMat, 0, 0, 0, g);
-  boite(0.6, 0.3, 0.03, caisseMat, 0, 0.15, -0.185, g); boite(0.6, 0.3, 0.03, caisseMat, 0, 0.15, 0.185, g);
-  boite(0.03, 0.3, 0.4, caisseMat, -0.285, 0.15, 0, g); boite(0.03, 0.3, 0.4, caisseMat, 0.285, 0.15, 0, g);
-  if (plein) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.22, 0.34), plein); m.position.y = 0.13; g.add(m); g.userData.contenu = m; }
+  boite(0.6, 0.03, 0.4, M.caisse, 0, 0.015, 0, g, 0.01);
+  for (const [w, d, x, z] of [[0.6, 0.025, 0, -0.19], [0.6, 0.025, 0, 0.19], [0.025, 0.4, -0.29, 0], [0.025, 0.4, 0.29, 0]]) boite(w, 0.28, d, M.caisse, x, 0.15, z, g, 0.01);
+  if (plein) { const m = new THREE.Mesh(new RoundedBoxGeometry(0.54, 0.2, 0.34, 2, 0.04), plein); m.position.y = 0.17; g.add(m); g.userData.contenu = m; }
   return g;
 }
-const vracMat = new THREE.MeshStandardMaterial({ color: '#d7261e', roughness: 0.55 });
-for (let i = 0; i < 4; i++) { const c = caisse(pileCaisses, vracMat); c.position.set(-11.4, -1.08 + i * 0.31, -1.9); }
-// robot
+const vracMat = new THREE.MeshPhysicalMaterial({ color: '#c8221b', roughness: 0.5, clearcoat: 0.6 });
+const trémie = new THREE.Group(); scene.add(trémie); trémie.position.set(X_ELEV_BAS - 0.2, 0, 0);
+boite(1.3, 0.04, 1.6, M.inox, 0, 0.55, 0, trémie);
+for (const [w, d, x, z] of [[1.3, 0.04, 0, -0.8], [1.3, 0.04, 0, 0.8], [0.04, 1.6, -0.65, 0]]) boite(w, 0.55, d, M.inox, x, 0.82, z, trémie);
+for (const [x, z] of [[-0.55, -0.7], [-0.55, 0.7], [0.5, -0.7], [0.5, 0.7]]) boite(0.07, 0.55, 0.07, M.inox, x, 0.27, z, trémie);
+const pile = new THREE.Group(); scene.add(pile);
+for (let i = 0; i < 4; i++) { const c = caisse(pile, vracMat); c.position.set(-14.4, i * 0.31, -1.7); }
 const robot = { base: new THREE.Group(), epaule: new THREE.Group(), coude: new THREE.Group(), poignet: new THREE.Group() };
 {
-  const R = robot; groupeRobot.add(R.base); R.base.position.set(-10.3, -1.1, -0.2);
-  const socle = cylindre(0.32, 0.35, robotMat, R.base); socle.position.y = 0.17;
-  const tour = cylindre(0.22, 0.5, robotAccent, R.base); tour.position.y = 0.55;
+  const R = robot; groupeRobot.add(R.base); R.base.position.set(-13.2, 0, -0.4);
+  cylindre(0.34, 0.3, M.robot, R.base).position.y = 0.15;
+  cylindre(0.24, 0.5, M.accent, R.base).position.y = 0.55;
   R.base.add(R.epaule); R.epaule.position.y = 0.85;
-  const bras1 = boite(0.2, 1.45, 0.24, robotMat, 0, 0.72, 0, R.epaule);
-  const art1 = cylindre(0.17, 0.32, robotAccent, R.epaule); art1.rotation.x = Math.PI / 2;
+  boite(0.22, 1.45, 0.26, M.robot, 0, 0.72, 0, R.epaule, 0.08);
+  const a1 = cylindre(0.18, 0.34, M.accent, R.epaule); a1.rotation.x = Math.PI / 2;
   R.epaule.add(R.coude); R.coude.position.y = 1.45;
-  const art2 = cylindre(0.14, 0.3, robotAccent, R.coude); art2.rotation.x = Math.PI / 2;
-  boite(0.17, 1.25, 0.2, robotMat, 0, 0.62, 0, R.coude);
+  const a2 = cylindre(0.15, 0.32, M.accent, R.coude); a2.rotation.x = Math.PI / 2;
+  boite(0.18, 1.25, 0.22, M.robot, 0, 0.62, 0, R.coude, 0.07);
   R.coude.add(R.poignet); R.poignet.position.y = 1.25;
-  const art3 = cylindre(0.1, 0.26, robotAccent, R.poignet); art3.rotation.x = Math.PI / 2;
-  boite(0.7, 0.05, 0.08, noir, 0, -0.05, 0, R.poignet);
+  const a3 = cylindre(0.11, 0.28, M.accent, R.poignet); a3.rotation.x = Math.PI / 2;
+  boite(0.7, 0.05, 0.1, M.noir, 0, -0.05, 0, R.poignet);
   R.prise = caisse(R.poignet, vracMat); R.prise.position.set(0, -0.42, 0);
 }
 const L1 = 1.45, L2 = 1.25;
-// cinématique inverse plane : vise un point du poignet, la caisse reste horizontale sauf bascule
 function poserRobot(cible, bascule) {
-  const R = robot; const b = R.base.position;
+  const R = robot, b = R.base.position;
   const dx = cible.x - b.x, dz = cible.z - b.z, dy = cible.y - (b.y + 0.85);
   R.base.rotation.y = Math.atan2(-dz, dx);
-  const r = Math.max(0.2, Math.hypot(dx, dz));
-  const d = Math.min(L1 + L2 - 0.01, Math.hypot(r, dy));
+  const r = Math.max(0.2, Math.hypot(dx, dz)), d = Math.min(L1 + L2 - 0.01, Math.hypot(r, dy));
   const a2 = Math.acos(THREE.MathUtils.clamp((d * d - L1 * L1 - L2 * L2) / (2 * L1 * L2), -1, 1));
   const a1 = Math.atan2(dy, r) - Math.atan2(L2 * Math.sin(-a2), L1 + L2 * Math.cos(-a2));
-  // les groupes « pointent » vers +Y : rotation z = angle - 90°
-  R.epaule.rotation.z = a1 - Math.PI / 2;
-  R.coude.rotation.z = -a2;
+  R.epaule.rotation.z = a1 - Math.PI / 2; R.coude.rotation.z = -a2;
   R.poignet.rotation.z = -(R.epaule.rotation.z + R.coude.rotation.z) + bascule;
 }
-const trajet = [ // [x, y, z, bascule, porte?]
-  [-10.9, 0.9, -1.2, 0, 0], [-11.4, 0.2, -1.9, 0, 0], [-11.4, 0.2, -1.9, 0, 1], [-11.0, 1.5, -1.3, 0, 1],
-  [-9.4, 1.65, 0, 0, 1], [-9.25, 1.55, 0, 1.9, 1], [-9.25, 1.55, 0, 1.9, 2], [-9.4, 1.65, 0, 0, 2], [-10.9, 0.9, -1.2, 0, 0]
-];
+const trajet = [[-13.9, 1.8, -1.2, 0, 0], [-14.4, 1.75, -1.7, 0, 0], [-14.4, 1.75, -1.7, 0, 1], [-14.0, 2.6, -1.2, 0, 1],
+  [-12.1, 2.5, 0, 0, 1], [-11.8, 2.25, 0, 1.9, 1], [-11.8, 2.25, 0, 1.9, 2], [-12.1, 2.5, 0, 0, 2], [-13.9, 1.8, -1.2, 0, 0]];
 const DUREE_ROBOT = 9;
 
-// ---------- 2. aligneur : rouleaux ----------
-const aligneur = new THREE.Group(); scene.add(aligneur);
-const rouleaux = [];
-for (let x = X_ALIGN_DEBUT; x <= X_ALIGN_FIN - 0.1; x += 0.19) {
-  const r = cylindre(0.075, 2.05, inoxBrosse, aligneur, 18); r.rotation.x = Math.PI / 2; r.position.set(x, Y_GODET - 0.16, 0); rouleaux.push(r);
+// ---------- 2. élévateur à tasseaux ----------
+const elevateur = new THREE.Group(); scene.add(elevateur);
+const pente = Math.atan2(Y - 0.75, X_ELEV_HAUT - X_ELEV_BAS);
+const longElev = Math.hypot(X_ELEV_HAUT - X_ELEV_BAS, Y - 0.75);
+const cadreElev = new THREE.Group(); elevateur.add(cadreElev);
+cadreElev.position.set((X_ELEV_BAS + X_ELEV_HAUT) / 2, (0.75 + Y) / 2, 0); cadreElev.rotation.z = pente;
+boite(longElev, 0.03, 1.5, M.bleuTapis, 0, -0.02, 0, cadreElev, 0.01);
+boite(longElev + 0.1, 0.22, 0.05, M.inox, 0, 0.05, -0.78, cadreElev);
+boite(longElev + 0.1, 0.22, 0.05, M.inox, 0, 0.05, 0.78, cadreElev);
+const NB_TASSEAUX = Math.floor(longElev / 0.18);
+const tasseaux = new THREE.InstancedMesh(new RoundedBoxGeometry(0.025, 0.05, 1.46, 2, 0.01), M.bleu, NB_TASSEAUX);
+tasseaux.frustumCulled = false; tasseaux.castShadow = true; cadreElev.add(tasseaux);
+for (const [x, z] of [[X_ELEV_BAS + 0.4, -0.7], [X_ELEV_BAS + 0.4, 0.7], [X_ELEV_HAUT - 0.2, -0.7], [X_ELEV_HAUT - 0.2, 0.7]]) {
+  const h = 0.75 + (x - X_ELEV_BAS) * Math.tan(pente); boite(0.07, h, 0.07, M.inox, x, h / 2, z, elevateur);
 }
-// guides en V qui rabattent vers les voies
-for (let i = 0; i <= VOIES.length; i++) {
-  const zFin = i === 0 ? -1.0 : i === VOIES.length ? 1.0 : (VOIES[i - 1] + VOIES[i]) / 2;
-  const zDeb = zFin * 1.0;
-  const g = boite(1.6, 0.14, 0.025, inox, X_ALIGN_FIN - 0.8, Y_GODET + 0.0, zFin, aligneur);
-}
-boite(X_ALIGN_FIN - X_ALIGN_DEBUT + 0.3, 0.35, 0.06, inox, (X_ALIGN_DEBUT + X_ALIGN_FIN) / 2, Y_GODET - 0.1, -1.08, aligneur);
-boite(X_ALIGN_FIN - X_ALIGN_DEBUT + 0.3, 0.35, 0.06, inox, (X_ALIGN_DEBUT + X_ALIGN_FIN) / 2, Y_GODET - 0.1, 1.08, aligneur);
+const moteur = cylindre(0.14, 0.3, M.inoxBrosse, elevateur); moteur.rotation.x = Math.PI / 2; moteur.position.set(X_ELEV_HAUT, Y - 0.1, 0.95);
 
-// ---------- 3. godets (instanciés) ----------
+// ---------- 3. aligneur : tapis bleu et diviseurs en toit ----------
+const aligneur = new THREE.Group(); scene.add(aligneur);
+const longAlign = X_ALIGN_FIN - X_ELEV_HAUT;
+boite(longAlign, 0.03, LARG - 0.1, M.bleuTapis, (X_ELEV_HAUT + X_ALIGN_FIN) / 2, Y - 0.02, 0, aligneur, 0.01);
+for (let i = 1; i < NB; i++) {
+  const z = (i - NB / 2) * PAS_Z;
+  const d = prisme(longAlign * 0.8, 0.12, 0.12, M.inox); d.position.set(X_ALIGN_FIN - longAlign * 0.4, Y, z); aligneur.add(d);
+  const pointe = new THREE.Mesh(new THREE.ConeGeometry(0.085, 0.3, 4), M.inox); pointe.rotation.z = Math.PI / 2; pointe.rotation.x = Math.PI / 4;
+  pointe.position.set(X_ALIGN_FIN - longAlign * 0.8 - 0.15, Y + 0.04, z); pointe.castShadow = true; aligneur.add(pointe);
+}
+boite(longAlign, 0.24, 0.05, M.inox, (X_ELEV_HAUT + X_ALIGN_FIN) / 2, Y + 0.06, -LARG / 2, aligneur);
+boite(longAlign, 0.24, 0.05, M.inox, (X_ELEV_HAUT + X_ALIGN_FIN) / 2, Y + 0.06, LARG / 2, aligneur);
+const barre = boite(0.06, 0.06, LARG + 0.2, M.inox, X_ALIGN_FIN - 0.25, Y + 0.28, 0, aligneur);
+
+// ---------- 4. chaînes de godets (instanciées) ----------
 const groupeGodets = new THREE.Group(); scene.add(groupeGodets);
 const godetGeo = (() => {
-  // godet en V : deux plaques inclinées
-  const g = new THREE.BoxGeometry(0.22, 0.03, 0.2);
-  return g;
+  // godet : coque bleue en U, lèvres inox ajoutées à part
+  const s = new THREE.Shape();
+  s.moveTo(-0.1, 0.11); s.lineTo(-0.1, 0.02); s.quadraticCurveTo(-0.1, 0, -0.08, 0); s.lineTo(0.08, 0); s.quadraticCurveTo(0.1, 0, 0.1, 0.02);
+  s.lineTo(0.1, 0.11); s.lineTo(0.085, 0.11); s.lineTo(0.085, 0.02); s.lineTo(-0.085, 0.02); s.lineTo(-0.085, 0.11);
+  const g = new THREE.ExtrudeGeometry(s, { depth: 0.13, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.004, bevelSegments: 2 });
+  g.rotateY(Math.PI / 2); g.translate(-0.065, 0, 0); return g;
 })();
-const NB_GODETS = Math.ceil((X_FIN - X_ALIGN_FIN) / PAS) + 2;
-const godetsHaut = new THREE.InstancedMesh(new THREE.BoxGeometry(0.2, 0.035, 0.18), bleu, NB_GODETS * VOIES.length * 2);
-const godetsAile = new THREE.InstancedMesh(new THREE.BoxGeometry(0.2, 0.025, 0.11), bleu, NB_GODETS * VOIES.length * 4);
-godetsHaut.castShadow = godetsAile.castShadow = true; godetsHaut.receiveShadow = true;
-godetsHaut.frustumCulled = godetsAile.frustumCulled = false;
-groupeGodets.add(godetsHaut, godetsAile);
-// rails des chaînes
-for (const z of VOIES) for (const dz of [-0.2, 0.2]) boite(X_FIN - X_ALIGN_FIN, 0.04, 0.03, noir, (X_FIN + X_ALIGN_FIN) / 2, Y_GODET - 0.15, z + dz, groupeGodets);
+const NB_G = Math.ceil(L / PAS) + 2;
+const godets = new THREE.InstancedMesh(godetGeo, M.bleu, NB_G * NB * 2);
+const rouleaux = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.022, 0.022, 0.15, 14).rotateX(Math.PI / 2), M.noir, NB_G * NB * 2);
+for (const m of [godets, rouleaux]) { m.frustumCulled = false; m.castShadow = true; m.receiveShadow = true; groupeGodets.add(m); }
 
-// ---------- 4. tunnel de vision ----------
-const vision = new THREE.Group(); scene.add(vision); vision.position.x = X_VISION;
-const LONG_T = 2.6;
-boite(LONG_T, 0.08, 2.3, inox, 0, 1.85, 0, vision);                 // toit
-boite(LONG_T, 1.25, 0.06, inox, 0, 1.2, -1.15, vision);            // paroi arrière
-const vitreT = new THREE.Mesh(new THREE.PlaneGeometry(LONG_T, 1.25), vitre); vitreT.position.set(0, 1.2, 1.15); vision.add(vitreT);
-boite(0.06, 1.25, 2.3, inox, -LONG_T / 2, 1.2, 0, vision).material = inox;
-for (const dx of [-LONG_T / 2, LONG_T / 2]) { const cadre = boite(0.08, 1.3, 0.08, inox, dx, 1.2, 1.15, vision); }
-const leds = [];
-for (const z of [-0.95, 0.95]) for (const y of [1.0, 1.55]) { const l = boite(LONG_T - 0.3, 0.04, 0.06, led.clone(), 0, y, z, vision); l.castShadow = false; leds.push(l); }
-const cameras = [];
-for (const dx of [-0.6, 0.6]) {
-  const c = new THREE.Group(); vision.add(c); c.position.set(dx, 1.68, 0);
-  boite(0.26, 0.2, 0.2, noir, 0, 0, 0, c);
-  const obj = cylindre(0.06, 0.14, noir, c); obj.position.y = -0.15;
-  const cone = new THREE.Mesh(new THREE.ConeGeometry(0.95, 1.0, 32, 1, true), new THREE.MeshBasicMaterial({ color: '#7db4ff', transparent: true, opacity: 0.07, side: THREE.DoubleSide, depthWrite: false }));
-  cone.position.y = -0.72; c.add(cone); cameras.push(cone);
+// ---------- 5. tunnel de vision ----------
+const vision = new THREE.Group(); scene.add(vision); vision.position.x = X_TUNNEL;
+const hT = 1.45, yT = Y + 0.2;
+boite(LONG_TUNNEL, hT, LARG + 0.4, M.inoxBrosse, 0, yT + hT / 2, 0, vision, 0.04);
+for (const s of [-1, 1]) for (let k = 0; k < 4; k++) {
+  const p = boite(LONG_TUNNEL / 4 - 0.06, hT - 0.16, 0.02, M.inox, -LONG_TUNNEL / 2 + (k + 0.5) * LONG_TUNNEL / 4, yT + hT / 2, s * (LARG / 2 + 0.21), vision, 0.01);
+  boite(0.03, 0.14, 0.04, M.noir, -LONG_TUNNEL / 2 + (k + (k % 2 ? 0.15 : 0.85)) * LONG_TUNNEL / 4, yT + hT / 2, s * (LARG / 2 + 0.24), vision, 0.012);
 }
-const lumiereTunnel = new THREE.PointLight('#e8f3ff', 0, 4); lumiereTunnel.position.set(0, 1.2, 0); vision.add(lumiereTunnel);
-
-// ---------- 5. station SWIR ----------
-const swir = new THREE.Group(); scene.add(swir); swir.position.x = X_SWIR;
-boite(0.9, 0.55, 2.2, inox, 0, 1.55, 0, swir);
-boite(0.5, 0.35, 0.5, noir, 0, 2.0, 0, swir);
-const ligneIR = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 0.6), new THREE.MeshBasicMaterial({ color: '#ff2fb3', transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending }));
-ligneIR.rotation.y = Math.PI / 2; ligneIR.position.set(0, 1.0, 0); ligneIR.scale.x = 1; swir.add(ligneIR);
-const fente = boite(0.04, 0.02, 2.0, new THREE.MeshStandardMaterial({ color: '#ff2fb3', emissive: '#ff2fb3', emissiveIntensity: 3 }), 0, 1.27, 0, swir);
-for (const z of [-1.05, 1.05]) boite(0.08, 1.0, 0.08, inox, 0, 0.9, z, swir);
-
-// ---------- 6. éjection : buses ----------
-const ejection = new THREE.Group(); scene.add(ejection);
-for (const x of SORTIES) for (const z of VOIES) {
-  const b = cylindre(0.022, 0.12, robotAccent, ejection, 12); b.rotation.z = Math.PI / 2; b.position.set(x - 0.02, Y_GODET - 0.2, z);
-  const v = boite(0.1, 0.1, 0.1, noir, x - 0.13, Y_GODET - 0.22, z, ejection);
-}
-// goulottes vers les bacs
-for (const x of SORTIES) for (const s of [-1, 1]) { const g = boite(0.7, 0.03, 0.7, inox, x, 0.15, s * 1.45, ejection); g.rotation.x = s * 0.55; }
-// bouffées d'air
-const bouffees = [];
-const bouffeeMat = new THREE.MeshBasicMaterial({ color: '#dff4ff', transparent: true, opacity: 0, depthWrite: false });
-for (let i = 0; i < 40; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 8), bouffeeMat.clone()); m.visible = false; scene.add(m); bouffees.push({ m, t: 9 }); }
-function souffler(x, z) {
-  const b = bouffees.find(b => b.t > 0.5) || bouffees[0]; b.t = 0; b.m.visible = true;
-  b.m.position.set(x, Y_GODET - 0.05, z); b.dir = z < 0 ? -1 : 1;
+for (let k = 0; k < 3; k++) { const l = cylindre(0.025, 0.02, M.led, vision, 16); l.rotation.x = Math.PI / 2; l.position.set(-0.9 + k * 0.18, yT + hT - 0.22, LARG / 2 + 0.23); }
+for (let k = 0; k < 6; k++) boite(0.32, 0.015, 0.02, M.noir, LONG_TUNNEL / 2 - 0.45, yT + 0.35 + k * 0.05, LARG / 2 + 0.215, vision, 0.004);
+boite(LONG_TUNNEL + 0.1, 0.06, LARG + 0.5, M.inox, 0, yT + hT + 0.03, 0, vision);
+// lumière qui s'échappe sous le tunnel (fente lumineuse)
+const fente = boite(LONG_TUNNEL - 0.1, 0.02, LARG - 0.2, M.led, 0, yT - 0.005, 0, vision, 0.005); fente.castShadow = false;
+const lumTunnel = new THREE.PointLight('#dfeeff', 3, 3, 2); lumTunnel.position.set(0, Y + 0.25, 0); vision.add(lumTunnel);
+// tuyauterie bleue et filtres
+const tuy = cylindre(0.035, LONG_TUNNEL + 2, M.tube, vision); tuy.rotation.z = Math.PI / 2; tuy.position.set(0.4, yT + hT + 0.35, -0.4);
+for (let k = 0; k < 3; k++) { const f = cylindre(0.05, 0.22, M.inoxBrosse, vision); f.position.set(LONG_TUNNEL / 2 + 0.12, yT + hT - 0.4, -0.3 + k * 0.15); }
+// capot des caméras, à facettes
+const hotte = new THREE.Group(); scene.add(hotte); hotte.position.x = X_HOTTE;
+{
+  const s = new THREE.Shape(); const w = LARG / 2 + 0.15;
+  s.moveTo(-w, 0); s.lineTo(-w, 0.55); s.lineTo(-w + 0.3, 0.95); s.lineTo(w - 0.3, 0.95); s.lineTo(w, 0.55); s.lineTo(w, 0); s.lineTo(-w, 0);
+  const g = new THREE.ExtrudeGeometry(s, { depth: LONG_HOTTE, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 2 });
+  g.rotateY(Math.PI / 2); g.translate(-LONG_HOTTE / 2, 0, 0);
+  const m = new THREE.Mesh(g, M.inox); m.position.y = Y + 0.18; m.castShadow = true; m.receiveShadow = true; hotte.add(m);
+  for (const s2 of [-1, 1]) for (let k = 0; k < 3; k++) { const p = boite(0.55, 0.18, 0.02, M.inoxBrosse, -0.85 + k * 0.85, Y + 0.6, s2 * (LARG / 2 + 0.18), hotte, 0.01); }
+  const bande = boite(LONG_HOTTE - 0.05, 0.02, 0.02, M.ledBleue, 0, Y + 1.13, LARG / 2 - 0.15, hotte, 0.005); bande.castShadow = false;
 }
 
-// ---------- 7. bacs ----------
+// ---------- 6–7. stations ST : vannes, tapis transversaux, caisses ----------
+const stations = new THREE.Group(); scene.add(stations);
+const bacs = [];      // {x, cote, zCaisse}
+const tapisST = [];   // pour animer les bandes
+function plaque(texte) {
+  const c = document.createElement('canvas'); c.width = 128; c.height = 64; const g = c.getContext('2d');
+  g.fillStyle = '#c9d1da'; g.fillRect(0, 0, 128, 64); g.strokeStyle = '#3a4250'; g.lineWidth = 4; g.strokeRect(6, 6, 116, 52);
+  g.fillStyle = '#20252d'; g.font = 'bold 34px Arial'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(texte, 64, 34);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  return new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.1), new THREE.MeshStandardMaterial({ map: t, metalness: 0.6, roughness: 0.4 }));
+}
+let numST = 0;
+for (const cote of [-1, 1]) for (const x of STATIONS) {
+  numST++;
+  const zB = cote * (LARG / 2 + 0.45);
+  const t = new THREE.Group(); stations.add(t); t.position.set(x, Y - 0.62, zB); t.rotation.x = cote * 0.12;
+  boite(0.5, 0.025, 0.9, M.bleuTapis, 0, 0, 0, t, 0.01);
+  boite(0.04, 0.12, 0.92, M.inox, -0.27, 0.03, 0, t); boite(0.04, 0.12, 0.92, M.inox, 0.27, 0.03, 0, t);
+  for (const s of [-1, 1]) { const rl = cylindre(0.035, 0.52, M.inoxBrosse, t, 18); rl.rotation.z = Math.PI / 2; rl.position.set(0, -0.01, s * 0.45); }
+  tapisST.push(t);
+  // goulotte entre la chaîne et le tapis
+  const gl = boite(0.42, 0.02, 0.5, M.inox, x, Y - 0.3, cote * (LARG / 2 - 0.2), stations, 0.008); gl.rotation.x = cote * 0.7;
+  // bloc de vannes + tubes bleus
+  boite(0.16, 0.12, 0.12, M.noir, x - 0.18, Y - 0.25, cote * (LARG / 2 + 0.1), stations, 0.02);
+  for (let k = 0; k < 3; k++) { const tb = cylindre(0.008, 0.35, M.tube, stations, 8); tb.position.set(x - 0.22 + k * 0.04, Y - 0.42, cote * (LARG / 2 + 0.1)); }
+  // plaque ST
+  const p = plaque('ST' + numST); p.position.set(x, Y - 0.13, cote * (LARG / 2 + 0.045)); p.rotation.y = cote > 0 ? 0 : Math.PI; stations.add(p);
+  // caisse en bout de tapis, sur convoyeur à rouleaux
+  const zC = cote * (LARG / 2 + 1.2);
+  const c = caisse(stations); c.position.set(x, 0.32, zC); c.rotation.y = Math.PI / 2;
+  bacs.push({ x, cote, zC, n: 0 });
+}
+// convoyeurs de caisses le long de la ligne
 const groupeBacs = new THREE.Group(); scene.add(groupeBacs);
-const bacs = [];
-for (let k = 0; k < SORTIES.length; k++) for (const s of [-1, 1]) {
-  const c = caisse(groupeBacs); c.position.set(SORTIES[k], -1.08, s * 2.0); c.rotation.y = Math.PI / 2;
-  bacs.push({ x: SORTIES[k], z: s * 2.0, n: 0 });
+for (const cote of [-1, 1]) {
+  const z = cote * (LARG / 2 + 1.2);
+  boite(STATIONS.at(-1) - STATIONS[0] + 1.2, 0.05, 0.62, M.inox, (STATIONS[0] + STATIONS.at(-1)) / 2, 0.27, z, groupeBacs);
+  for (let x = STATIONS[0] - 0.5; x <= STATIONS.at(-1) + 0.5; x += 0.14) { const r = cylindre(0.025, 0.58, M.bleu, groupeBacs, 12); r.rotation.x = Math.PI / 2; r.position.set(x, 0.3, z); }
+  for (let x = STATIONS[0] - 0.5; x <= STATIONS.at(-1) + 0.6; x += 1.4) boite(0.06, 0.26, 0.06, M.inox, x, 0.13, z, groupeBacs);
 }
-// bac de retour en bout de ligne
-const retour = caisse(groupeBacs); retour.position.set(X_FIN + 0.55, -1.08, 0); retour.rotation.y = Math.PI / 2;
 
 // ---------- 8. pupitre ----------
-const pupitre = new THREE.Group(); scene.add(pupitre); pupitre.position.set(-1.9, -1.1, -2.1);
-boite(0.5, 1.5, 0.35, inox, 0, 0.75, 0, pupitre);
+const pupitre = new THREE.Group(); scene.add(pupitre); pupitre.position.set(-6.4, 0, -(LARG / 2 + 0.9));
+boite(0.55, 1.75, 0.38, M.inox, 0, 0.875, 0, pupitre, 0.04);
 const ecranTex = new THREE.TextureLoader().load('media/ui-suivi.jpg'); ecranTex.colorSpace = THREE.SRGBColorSpace;
-const ecran = new THREE.Mesh(new THREE.PlaneGeometry(0.86, 0.5), new THREE.MeshBasicMaterial({ map: ecranTex, toneMapped: false }));
-const boitier = boite(0.95, 0.6, 0.06, noir, 0, 1.85, 0.05, pupitre); boitier.rotation.x = -0.25;
-ecran.position.set(0, 1.86, 0.09); ecran.rotation.x = -0.25; pupitre.add(ecran);
-pupitre.rotation.y = 0.35;
+const boitier = boite(1.0, 0.62, 0.07, M.noir, 0, 2.0, 0.08, pupitre, 0.03); boitier.rotation.x = -0.2;
+const ecran = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.52), new THREE.MeshBasicMaterial({ map: ecranTex, toneMapped: false }));
+ecran.position.set(0, 2.01, 0.125); ecran.rotation.x = -0.2; pupitre.add(ecran);
+for (let k = 0; k < 3; k++) { const b = cylindre(0.025, 0.03, k === 2 ? M.accent : M.ledBleue, pupitre, 16); b.rotation.x = Math.PI / 2; b.position.set(-0.12 + k * 0.12, 1.25, 0.2); }
+pupitre.rotation.y = Math.PI - 0.3;
 
-// ---------- fruits ----------
-const FRUITS = {
-  'tomate-cerise': { r: 0.075, e: [1, 1, 1], couleurs: ['#c4161c', '#e2381e', '#ef7a22', '#7fa63a'], rough: 0.25 },
-  'tomate': { r: 0.105, e: [1, 0.88, 1], couleurs: ['#b9141a', '#d9361f', '#e8772a', '#8aa63e'], rough: 0.25 },
-  'orange': { r: 0.11, e: [1, 1, 1], couleurs: ['#f07a0c', '#f29a1d', '#e5b12a', '#9bb03a'], rough: 0.6 },
-  'datte': { r: 0.07, e: [1.55, 0.85, 0.85], couleurs: ['#5a2e14', '#7a3e1b', '#9a5a28', '#3b2416'], rough: 0.45 },
-  'myrtille': { r: 0.055, e: [1, 0.85, 1], couleurs: ['#2b2d5a', '#3a3b72', '#4c4a7e', '#6b7a4a'], rough: 0.75 },
-};
-let typeFruit = 'tomate-cerise';
-const MAX_FRUITS = 1400;
-const fruitMat = new THREE.MeshStandardMaterial({ roughness: 0.3, metalness: 0 });
-const fruits = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 20, 14), fruitMat, MAX_FRUITS);
-fruits.castShadow = true; fruits.frustumCulled = false; fruits.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+// ---------- tomates cerises ----------
+const COULEURS = ['#c8150f', '#dd2a14', '#ee5a1c', '#f08a2a', '#9aa83a'];   // de très mûre à tournante
+const MAX = 2800;
+const fruitMat = new THREE.MeshPhysicalMaterial({ roughness: 0.22, clearcoat: 0.9, clearcoatRoughness: 0.12, sheen: 0.2 });
+const fruits = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 22, 16), fruitMat, MAX);
+fruits.frustumCulled = false; fruits.castShadow = true; fruits.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 scene.add(fruits);
-const pool = []; // {etat, voie, n, z0, classe, sortie, t, de, vers, phase}
-const couleurTmp = new THREE.Color();
-function appliquerType(t) {
-  typeFruit = t; const f = FRUITS[t]; fruitMat.roughness = f.rough; vracMat.color.set(f.couleurs[0]);
-  for (const p of pool) p.etat = 'libre';
+const pedoncule = new THREE.InstancedMesh(new THREE.ConeGeometry(0.35, 0.25, 5), new THREE.MeshStandardMaterial({ color: '#3f7a2a', roughness: 0.6 }), MAX);
+pedoncule.frustumCulled = false; scene.add(pedoncule);
+const pool = [];
+const R_FRUIT = 0.045;
+
+// ---------- simulation ----------
+const VITESSE = 0.6;
+let distance = 0, dernier = -1;
+const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), p3 = new THREE.Vector3(), e3 = new THREE.Vector3(), eul = new THREE.Euler(), col = new THREE.Color();
+const mP = new THREE.Matrix4(), off = new THREE.Vector3();
+
+function xSlot(n) { return X_ELEV_BAS + (distance - n * PAS); }
+function creer(n, v) {
+  if (Math.random() < 0.1) return;
+  let p = pool.find(f => f.etat === 'libre');
+  if (!p) { if (pool.length >= MAX) return; p = {}; pool.push(p); }
+  const classe = Math.random() < 0.07 ? 4 : Math.floor(Math.random() * 4);
+  const cote = v < NB / 2 ? -1 : 1;
+  // classe -> stations de ce côté (2 à 3 stations par classe), quelques retours en bout de ligne
+  let st = Math.min(9, classe * 2 + (Math.random() < 0.5 ? 0 : 1) + (classe === 4 ? 1 : 0));
+  if (Math.random() < 0.03) st = -1;
+  Object.assign(p, { etat: 'ligne', n, v, z0: (Math.random() - 0.5) * 1.3, classe, cote, st, t: 0, ph: Math.random() * 6.3, k: 0.85 + Math.random() * 0.3, el: 1.12 + Math.random() * 0.2 });
 }
-appliquerType(typeFruit);
-
-// ---------- horloge de la ligne ----------
-const VITESSE = 0.85;            // m/s des godets
-let distance = 0;                // avance cumulée de la chaîne
-let dernierCreneau = -1;
-const mat4 = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), ech = new THREE.Vector3(), eul = new THREE.Euler();
-
-function creer(n, voie) {
-  if (Math.random() < 0.12) return;
-  let p = pool.find(p => p.etat === 'libre');
-  if (!p) { if (pool.length >= MAX_FRUITS) { p = pool.find(p => p.etat === 'bac'); if (!p) return; } else { p = {}; pool.push(p); } }
-  const classe = Math.random() < 0.08 ? 3 : Math.floor(Math.random() * 3);
-  const cote = VOIES[voie] < 0 ? -1 : 1;
-  // la classe choisit la sortie : 3 classes × 2 côtés, défauts vers la dernière sortie, quelques retours
-  let sortie = classe === 3 ? 5 : classe * 2 + (Math.random() < 0.5 ? 0 : 1);
-  if (Math.random() < 0.04) sortie = -1;
-  Object.assign(p, { etat: 'aligne', voie, n, z0: (Math.random() - 0.5) * 1.8, classe, sortie, cote, t: 0, phase: Math.random() * 6, taille: 0.88 + Math.random() * 0.24 });
+function placer(i, p, pos, rx, ry, rz) {
+  const r = R_FRUIT * p.k;
+  eul.set(rx, ry, rz); q.setFromEuler(eul); e3.set(r * p.el, r, r);
+  m4.compose(pos, q, e3); fruits.setMatrixAt(i, m4);
+  off.set(r * p.el * 0.95, 0, 0).applyQuaternion(q).add(pos);
+  e3.set(r * 0.6, r * 0.6, r * 0.6); m4.compose(off, q.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI / 2)), e3); pedoncule.setMatrixAt(i, m4);
+  col.set(COULEURS[p.classe]); fruits.setColorAt(i, col);
 }
 
-function xCreneau(n) { return X_ALIGN_DEBUT + (distance - n * PAS); }
-
-function majFruits(dt, temps) {
-  const f = FRUITS[typeFruit];
-  // nouveaux créneaux à l'entrée de l'aligneur
-  const creneau = Math.floor(distance / PAS);
-  while (dernierCreneau < creneau) { dernierCreneau++; for (let v = 0; v < VOIES.length; v++) creer(dernierCreneau, v); }
+function majFruits(dt, t) {
+  const c = Math.floor(distance / PAS);
+  while (dernier < c) { dernier++; for (let v = 0; v < NB; v++) creer(dernier, v); }
   let i = 0;
   for (const p of pool) {
     if (p.etat === 'libre') continue;
-    const zV = VOIES[p.voie];
-    const r = f.r * p.taille;
-    if (p.etat === 'aligne' || p.etat === 'godet') {
-      const x = xCreneau(p.n);
-      if (x < X_ALIGN_FIN) {
-        const k = THREE.MathUtils.smoothstep(x, X_ALIGN_DEBUT, X_ALIGN_FIN - 0.4);
-        pos.set(x + Math.sin(temps * 9 + p.phase) * 0.02 * (1 - k), Y_GODET - 0.08 + r + Math.abs(Math.sin(temps * 11 + p.phase)) * 0.03 * (1 - k), THREE.MathUtils.lerp(p.z0, zV, k));
-        eul.set(temps * 4 + p.phase, 0, -temps * 3);
-      } else {
-        p.etat = 'godet';
-        pos.set(x, Y_GODET - 0.07 + r * 0.75, zV);
-        eul.set(0, 0, -(x / r) * 0.6 + p.phase); // le fruit tourne en avançant
-        const xs = p.sortie >= 0 ? SORTIES[p.sortie] : X_FIN + 0.3;
+    const zV = VOIES[p.v];
+    if (p.etat === 'ligne') {
+      const x = xSlot(p.n);
+      if (x < X_ELEV_HAUT) {                    // sur l'élévateur, en vrac
+        const k = (x - X_ELEV_BAS) / (X_ELEV_HAUT - X_ELEV_BAS);
+        p3.set(x, 0.75 + k * (Y - 0.75) + 0.05, p.z0 * 1.05);
+        placer(i, p, p3, p.ph, 0, -t * 2);
+      } else if (x < X_ALIGN_FIN) {             // aligneur : rabattu vers sa ligne
+        const k = THREE.MathUtils.smootherstep(x, X_ELEV_HAUT, X_ALIGN_FIN - 0.3);
+        p3.set(x + Math.sin(t * 7 + p.ph) * 0.015 * (1 - k), Y + 0.045, THREE.MathUtils.lerp(p.z0, zV, k));
+        placer(i, p, p3, p.ph, 0, -(x / 0.045) * 0.5);
+      } else {                                  // dans son godet, il tourne sur les rouleaux
+        p3.set(x, Y + 0.075, zV);
+        placer(i, p, p3, -(x / 0.045) * 0.7 + p.ph, 0, 0);
+        const xs = p.st >= 0 ? STATIONS[p.st] : X_FIN + 0.2;
         if (x >= xs) {
-          p.etat = 'vol'; p.t = 0; p.de = pos.clone();
-          if (p.sortie >= 0) {
-            const b = bacs[p.sortie * 2 + (p.cote > 0 ? 1 : 0)];
-            p.vers = new THREE.Vector3(b.x + (Math.random() - 0.5) * 0.35, -1.0 + r + Math.random() * 0.12, b.z + (Math.random() - 0.5) * 0.22);
-            souffler(xs, zV);
-          } else p.vers = new THREE.Vector3(X_FIN + 0.55 + (Math.random() - 0.5) * 0.3, -0.95 + r, (Math.random() - 0.5) * 0.25);
+          if (p.st >= 0) { p.etat = 'chute'; souffler(xs, zV); }
+          else p.etat = 'retour';
+          p.t = 0; p.de = p3.clone();
         }
       }
+    } else if (p.etat === 'chute') {           // éjecté : tombe dans la goulotte jusqu'au tapis
+      p.t += dt / 0.32; const k = Math.min(1, p.t);
+      const zT = p.cote * (LARG / 2 + 0.05);
+      p3.set(p.de.x, THREE.MathUtils.lerp(p.de.y, Y - 0.58, k * k) + Math.sin(k * Math.PI) * 0.08, THREE.MathUtils.lerp(p.de.z, zT, k));
+      placer(i, p, p3, k * 6, 0, k * 4);
+      if (k >= 1) { p.etat = 'tapis'; p.t = 0; p.x0 = p.de.x + (Math.random() - 0.5) * 0.3; }
+    } else if (p.etat === 'tapis') {           // tapis transversal vers la caisse
+      p.t += dt; const z = p.cote * (LARG / 2 + 0.05 + p.t * 0.75);
+      p3.set(p.x0, Y - 0.58 + 0.045 - (Math.abs(z) - LARG / 2) * 0.1, z);
+      placer(i, p, p3, 0, 0, p.t * 9 * p.cote);
+      if (Math.abs(z) > LARG / 2 + 0.9) { p.etat = 'tombe'; p.t = 0; p.de = p3.clone(); const b = bacs[(p.cote > 0 ? 10 : 0) + p.st]; p.vers = new THREE.Vector3(b.x + (Math.random() - 0.5) * 0.4, 0.38 + Math.random() * 0.14, b.zC + (Math.random() - 0.5) * 0.24); }
+    } else if (p.etat === 'tombe') {
+      p.t += dt / 0.35; const k = Math.min(1, p.t);
+      p3.lerpVectors(p.de, p.vers, k); p3.y = THREE.MathUtils.lerp(p.de.y, p.vers.y, k * k);
+      placer(i, p, p3, k * 5, 0, 0);
+      if (k >= 1) { p.etat = 'caisse'; p.t = 0; p.repos = p3.clone(); p.rr = Math.random() * 6; }
+    } else if (p.etat === 'caisse') {
+      p.t += dt; placer(i, p, p.repos, p.rr, p.rr * 0.7, 0);
+      if (p.t > 12) { p.etat = 'libre'; continue; }
+    } else if (p.etat === 'retour') {
+      p.t += dt / 0.5; const k = Math.min(1, p.t);
+      p3.set(p.de.x + k * 0.5, THREE.MathUtils.lerp(p.de.y, 0.35, k * k), p.de.z); placer(i, p, p3, k * 4, 0, 0);
+      if (k >= 1) { p.etat = 'libre'; continue; }
     }
-    if (p.etat === 'vol') {
-      p.t += dt / 0.55; const k = Math.min(1, p.t);
-      pos.lerpVectors(p.de, p.vers, k); pos.y += Math.sin(k * Math.PI) * 0.45;
-      eul.set(k * 8, 0, k * 5);
-      if (k >= 1) { p.etat = 'bac'; p.t = 0; p.repos = p.vers.clone(); p.eul = eul.clone(); }
-    }
-    if (p.etat === 'bac') {
-      p.t += dt; pos.copy(p.repos); eul.copy(p.eul);
-      if (p.t > 30) { p.etat = 'libre'; continue; }
-    }
-    ech.set(r * f.e[0], r * f.e[1], r * f.e[2]);
-    q.setFromEuler(eul); mat4.compose(pos, q, ech); fruits.setMatrixAt(i, mat4);
-    couleurTmp.set(f.couleurs[p.classe]); fruits.setColorAt(i, couleurTmp);
     i++;
   }
-  fruits.count = i;
-  fruits.instanceMatrix.needsUpdate = true; if (fruits.instanceColor) fruits.instanceColor.needsUpdate = true;
+  fruits.count = pedoncule.count = i;
+  fruits.instanceMatrix.needsUpdate = pedoncule.instanceMatrix.needsUpdate = true;
+  if (fruits.instanceColor) fruits.instanceColor.needsUpdate = true;
 }
 
 function majGodets() {
-  let a = 0, b = 0; const dec = ((distance % PAS) + PAS) % PAS;
-  for (let v = 0; v < VOIES.length; v++) {
-    for (let j = 0; j < NB_GODETS; j++) {
-      // brin supérieur
-      const x = X_ALIGN_FIN + dec + j * PAS - PAS * 0.5;
-      if (x > X_ALIGN_FIN - 0.1 && x < X_FIN) {
-        pos.set(x, Y_GODET - 0.1, VOIES[v]); q.identity(); ech.set(1, 1, 1);
-        mat4.compose(pos, q, ech); godetsHaut.setMatrixAt(a++, mat4);
-        for (const s of [-1, 1]) { pos.set(x, Y_GODET - 0.06, VOIES[v] + s * 0.125); q.setFromEuler(eul.set(s * 0.65, 0, 0)); mat4.compose(pos, q, ech); godetsAile.setMatrixAt(b++, mat4); }
-      }
-      // brin de retour, dessous
-      const xr = X_FIN - dec - j * PAS;
-      if (xr > X_ALIGN_FIN && xr < X_FIN) { pos.set(xr, Y_GODET - 0.42, VOIES[v]); q.setFromEuler(eul.set(Math.PI, 0, 0)); ech.set(1, 1, 1); mat4.compose(pos, q, ech); godetsHaut.setMatrixAt(a++, mat4); }
+  let a = 0; const dec = ((distance % PAS) + PAS) % PAS;
+  for (let v = 0; v < NB; v++) for (let j = 0; j < NB_G; j++) {
+    const x = X_ALIGN_FIN + dec + j * PAS - PAS;
+    if (x > X_ALIGN_FIN - 0.08 && x < X_FIN) {
+      p3.set(x, Y, VOIES[v]); q.identity(); e3.set(1, 1, 1); m4.compose(p3, q, e3); godets.setMatrixAt(a, m4);
+      p3.set(x, Y + 0.035, VOIES[v]); q.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -distance / 0.022); m4.compose(p3, q, e3); rouleaux.setMatrixAt(a, m4);
+      a++;
+    }
+    const xr = X_FIN - dec - j * PAS;           // brin de retour
+    if (xr > X_ALIGN_FIN && xr < X_FIN) {
+      p3.set(xr, Y - 0.32, VOIES[v]); q.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI); m4.compose(p3, q, e3); godets.setMatrixAt(a, m4);
+      p3.set(xr, Y - 0.36, VOIES[v]); m4.compose(p3, q, e3); rouleaux.setMatrixAt(a, m4); a++;
     }
   }
-  godetsHaut.count = a; godetsAile.count = b;
-  godetsHaut.instanceMatrix.needsUpdate = true; godetsAile.instanceMatrix.needsUpdate = true;
+  godets.count = rouleaux.count = a;
+  godets.instanceMatrix.needsUpdate = rouleaux.instanceMatrix.needsUpdate = true;
+  // tasseaux de l'élévateur
+  const d2 = (distance * 1.0) % 0.18;
+  for (let k = 0; k < NB_TASSEAUX; k++) {
+    p3.set(-longElev / 2 + ((k * 0.18 + d2) % longElev), 0.02, 0); q.identity(); e3.set(1, 1, 1); m4.compose(p3, q, e3); tasseaux.setMatrixAt(k, m4);
+  }
+  tasseaux.instanceMatrix.needsUpdate = true;
+}
+
+// bouffées d'air à l'éjection
+const bouffees = [];
+for (let k = 0; k < 40; k++) {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 8), new THREE.MeshBasicMaterial({ color: '#dff1ff', transparent: true, opacity: 0, depthWrite: false }));
+  m.visible = false; scene.add(m); bouffees.push({ m, t: 9 });
+}
+function souffler(x, z) {
+  const b = bouffees.find(b => b.t > 0.4) || bouffees[0]; b.t = 0; b.m.visible = true; b.m.position.set(x, Y + 0.06, z); b.dir = z < 0 ? -1 : 1;
 }
 
 // ---------- étapes : caméra et repères ----------
 const ETAPES = [
-  { pos: [7, 6.5, 11.5], vise: [-0.5, 0, 0], ancre: null },
-  { pos: [-13.2, 3.4, 5.4], vise: [-10.2, 0.6, -0.5], ancre: [-10.3, 1.9, -0.2], groupe: groupeRobot },
-  { pos: [-6.6, 3.0, 3.7], vise: [-6.0, 0.5, 0], ancre: [-6.1, 0.75, 0.9], groupe: aligneur },
-  { pos: [-3.6, 1.55, 2.3], vise: [-3.9, 0.55, 0.1], ancre: [-3.4, 0.62, 0.75], groupe: groupeGodets },
-  { pos: [-0.2, 1.9, 3.6], vise: [-1.0, 1.0, 0], ancre: [-1.0, 1.95, 0], groupe: vision },
-  { pos: [3.4, 1.9, 3.0], vise: [2.05, 0.95, 0], ancre: [2.05, 1.85, 0], groupe: swir },
-  { pos: [5.9, 1.05, 2.4], vise: [5.0, 0.45, 0.4], ancre: [5.4, 0.62, 0.55], groupe: ejection },
-  { pos: [7.8, 2.6, 5.6], vise: [5.8, -0.7, 1.5], ancre: [5.8, -0.6, 2.0], groupe: groupeBacs },
-  { pos: [-1.0, 1.7, 0.2], vise: [-1.9, 0.7, -2.1], ancre: [-1.9, 1.15, -2.0], groupe: pupitre },
+  { pos: [9.5, 7.5, 13.5], vise: [-1.5, 0.8, 0] },
+  { pos: [-16.5, 3.6, 4.6], vise: [-13, 1.2, -0.4], ancre: [-13.2, 2.4, -0.4] },
+  { pos: [-9.2, 2.4, 3.6], vise: [-9.8, 1.0, 0], ancre: [-9.6, 1.05, 0.5] },
+  { pos: [-6.4, 2.7, 2.9], vise: [-7.0, 1.15, 0], ancre: [-6.7, 1.32, 0.3] },
+  { pos: [-4.75, 2.25, 1.5], vise: [-5.35, 1.15, 0.05], ancre: [-5.0, 1.3, 0.4] },
+  { pos: [-0.2, 2.8, 4.2], vise: [-2.7, 2.0, 0], ancre: [-2.7, 3.15, 0.9] },
+  { pos: [3.0, 1.5, 2.8], vise: [2.3, 0.95, 1.0], ancre: [2.25, 0.75, 1.6] },
+  { pos: [8.8, 2.8, 5.8], vise: [5.8, 0.5, 2.0], ancre: [5.8, 0.62, 2.55] },
+  { pos: [-5.0, 2.1, -4.6], vise: [-6.4, 1.6, -2.4], ancre: [-6.4, 2.2, -2.6] },
 ];
 const camPos = new THREE.Vector3(), camVise = new THREE.Vector3();
-let etapeVisee = 0, etapeActive = -1, avance = 0, visible = false;
-
-// halo de mise en valeur
-const halo = new THREE.Box3Helper(new THREE.Box3(), new THREE.Color('#7db4ff'));
-halo.material.transparent = true; halo.material.depthTest = false; scene.add(halo);
-
-function lissage(a, b, f) { return a + (b - a) * f; }
+let actif = -1, avance = 0, visible = false;
 
 function majCamera(dt) {
-  const n = ETAPES.length - 1;
-  const s = THREE.MathUtils.clamp(avance * n, 0, n);
-  const i = Math.min(n - 1, Math.floor(s)), fr = s - i;
-  const e = THREE.MathUtils.smootherstep(fr, 0.3, 0.7);
+  const n = ETAPES.length - 1, s = THREE.MathUtils.clamp(avance * n, 0, n);
+  const i = Math.min(n - 1, Math.floor(s)), e = THREE.MathUtils.smootherstep(s - i, 0.3, 0.7);
   const A = ETAPES[i], B = ETAPES[i + 1];
   const p = new THREE.Vector3().fromArray(A.pos).lerp(new THREE.Vector3().fromArray(B.pos), e);
   const v = new THREE.Vector3().fromArray(A.vise).lerp(new THREE.Vector3().fromArray(B.vise), e);
-  // léger arc pour éviter de traverser la machine
-  p.y += Math.sin(e * Math.PI) * 1.2;
+  p.y += Math.sin(e * Math.PI) * 1.4;
   const k = 1 - Math.pow(0.0015, dt);
-  camPos.lerp(p, k); camVise.lerp(v, k);
-  camera.position.copy(camPos); camera.lookAt(camVise);
-  const actif = Math.round(s);
-  if (actif !== etapeActive) {
-    etapeActive = actif;
-    cartes.forEach((c, j) => c.classList.toggle('active', j === actif));
-    sommaire.forEach((b, j) => b.classList.toggle('active', j === actif));
-    const g = ETAPES[actif].groupe;
-    halo.visible = !!g; if (g) halo.box.setFromObject(g).expandByScalar(0.06);
+  camPos.lerp(p, k); camVise.lerp(v, k); camera.position.copy(camPos); camera.lookAt(camVise);
+  const a = Math.round(s);
+  if (a !== actif) {
+    actif = a;
+    cartes.forEach((c, j) => c.classList.toggle('active', j === a));
+    sommaire.forEach((b, j) => b.classList.toggle('active', j === a));
   }
 }
-
 const proj = new THREE.Vector3();
 function majEtiquette() {
-  const E = ETAPES[etapeActive];
+  const E = ETAPES[actif];
   if (!E || !E.ancre) { etiquette.style.opacity = 0; return; }
   proj.fromArray(E.ancre).project(camera);
   const w = canvas.clientWidth, h = canvas.clientHeight;
   etiquette.style.transform = `translate(${(proj.x * 0.5 + 0.5) * w}px, ${(-proj.y * 0.5 + 0.5) * h}px)`;
   etiquette.style.opacity = proj.z < 1 ? 1 : 0;
-  etiquette.querySelector('span').textContent = cartes[etapeActive].dataset.court || '';
+  etiquette.querySelector('span').textContent = cartes[actif].dataset.court || '';
 }
 
-// ---------- boucle ----------
+// ---------- post-traitement ----------
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(512, 512), leger ? 0.22 : 0.32, 0.35, 0.97);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
 function dimensionner() {
   const w = canvas.clientWidth, h = canvas.clientHeight;
-  renderer.setSize(w, h, false); camera.aspect = w / h;
-  camera.fov = w < h ? 55 : 38; camera.updateProjectionMatrix();
+  renderer.setSize(w, h, false); composer.setSize(w, h);
+  camera.aspect = w / h; camera.fov = w < h ? 52 : 36; camera.updateProjectionMatrix();
 }
-new ResizeObserver(dimensionner).observe(canvas);
-dimensionner();
+new ResizeObserver(dimensionner).observe(canvas); dimensionner();
 camPos.fromArray(ETAPES[0].pos); camVise.fromArray(ETAPES[0].vise);
 
 function lireDefilement() {
-  const r = section.getBoundingClientRect();
-  const total = r.height - window.innerHeight;
+  const r = section.getBoundingClientRect(), total = r.height - innerHeight;
   avance = THREE.MathUtils.clamp(-r.top / total, 0, 1);
 }
-window.addEventListener('scroll', lireDefilement, { passive: true }); lireDefilement();
-new IntersectionObserver(es => { visible = es[0].isIntersecting; }, { rootMargin: '200px' }).observe(section);
 function estVisible() { const r = section.getBoundingClientRect(); visible = r.top < innerHeight + 200 && r.bottom > -200; }
-window.addEventListener('scroll', estVisible, { passive: true }); estVisible();
-
+addEventListener('scroll', () => { lireDefilement(); estVisible(); }, { passive: true }); lireDefilement(); estVisible();
 sommaire.forEach((b, j) => b.addEventListener('click', () => {
-  const r = section.getBoundingClientRect(); const total = r.height - window.innerHeight;
-  window.scrollTo({ top: window.scrollY + r.top + total * (j / (ETAPES.length - 1)) + 2, behavior: 'smooth' });
-}));
-section.querySelectorAll('[data-fruit3d]').forEach(b => b.addEventListener('click', () => {
-  section.querySelectorAll('[data-fruit3d]').forEach(x => x.classList.toggle('active', x === b));
-  appliquerType(b.dataset.fruit3d);
+  const r = section.getBoundingClientRect(), total = r.height - innerHeight;
+  scrollTo({ top: scrollY + r.top + total * (j / (ETAPES.length - 1)) + 2, behavior: 'smooth' });
 }));
 
+// ---------- boucle ----------
 const horloge = new THREE.Clock();
 let temps = 0, tRobot = 0;
-
 function avancer(dt) {
   temps += dt; distance += VITESSE * dt;
-  for (const r of rouleaux) r.rotation.y += dt * 6;
   majGodets(); majFruits(dt, temps);
-  // éclairs du tunnel et balayage SWIR
-  const eclair = Math.max(0, Math.sin(temps * 14));
-  for (const l of leds) l.material.emissiveIntensity = 1.6 + eclair * 2.2;
-  lumiereTunnel.intensity = (1.6 + eclair * 2.2) * 1.6;
-  for (const c of cameras) c.material.opacity = 0.05 + eclair * 0.07;
-  ligneIR.material.opacity = 0.22 + Math.sin(temps * 6) * 0.12;
-  // bouffées d'air
+  const eclair = 0.5 + 0.5 * Math.sin(temps * 5);
+  M.led.emissiveIntensity = 1.6 + eclair * 0.9; lumTunnel.intensity = 2 + eclair * 2;
   for (const b of bouffees) if (b.m.visible) {
-    b.t += dt; const k = b.t / 0.35; b.m.scale.setScalar(0.4 + k * 2.2);
-    b.m.position.z += (b.dir || 1) * dt * 1.2; b.m.material.opacity = Math.max(0, 0.55 * (1 - k));
-    if (k >= 1) b.m.visible = false;
+    b.t += dt; const k = b.t / 0.3; b.m.scale.setScalar(0.4 + k * 2);
+    b.m.position.z += b.dir * dt * 1.4; b.m.material.opacity = Math.max(0, 0.5 * (1 - k)); if (k >= 1) b.m.visible = false;
   }
-  // robot
   tRobot = (tRobot + dt) % DUREE_ROBOT;
-  const s = tRobot / DUREE_ROBOT * (trajet.length - 1); const i = Math.floor(s), f = THREE.MathUtils.smootherstep(s - i, 0, 1);
+  const s = tRobot / DUREE_ROBOT * (trajet.length - 1), i = Math.floor(s), f = THREE.MathUtils.smootherstep(s - i, 0, 1);
   const A = trajet[i], B = trajet[Math.min(i + 1, trajet.length - 1)];
-  poserRobot(new THREE.Vector3(lissage(A[0], B[0], f), lissage(A[1], B[1], f), lissage(A[2], B[2], f)), lissage(A[3], B[3], f));
+  poserRobot(new THREE.Vector3(A[0] + (B[0] - A[0]) * f, A[1] + (B[1] - A[1]) * f, A[2] + (B[2] - A[2]) * f), A[3] + (B[3] - A[3]) * f);
   robot.prise.visible = A[4] >= 1 || (B[4] === 1 && f > 0.5);
   if (robot.prise.userData.contenu) robot.prise.userData.contenu.visible = A[4] === 1;
-  halo.material.opacity = 0.35 + Math.sin(temps * 3) * 0.25;
   majCamera(dt); majEtiquette();
-  renderer.render(scene, camera);
+  composer.render();
 }
+// ligne déjà en production à l'arrivée
+for (let k = 0; k < 1300; k++) { distance += VITESSE / 30; majFruits(1 / 30, k / 30); }
+for (const p of pool) if (p.etat === 'caisse') p.t = Math.random() * 10;
 
-// ligne déjà en production à l'arrivée : 20 s simulées sans rendu
-for (let k = 0; k < 600; k++) { distance += VITESSE / 30; majFruits(1 / 30, k / 30); }
-for (const p of pool) if (p.etat === 'bac') p.t = Math.random() * 20;
-
-function image() {
-  requestAnimationFrame(image);
-  const dt = Math.min(0.05, horloge.getDelta());
-  if (visible) avancer(dt);
-}
+function image() { requestAnimationFrame(image); const dt = Math.min(0.05, horloge.getDelta()); if (visible) avancer(dt); }
 image();
-
-// crochet de contrôle (rendu sans écran) : calcule n images d'un coup
-window.__freescan3d = { calculer(n = 60, dt = 1 / 30) { lireDefilement(); for (let k = 0; k < n; k++) avancer(dt); }, etat() { const c = {}; for (const p of pool) c[p.etat] = (c[p.etat] || 0) + 1; const g = pool.find(p => p.etat === "godet"); return { c, distance, compte: fruits.count, g: g && { n: g.n, x: xCreneau(g.n), taille: g.taille, classe: g.classe } }; } };
+// crochet de contrôle (rendu sans écran)
+window.__freescan3d = { calculer(n = 60, dt = 1 / 30) { lireDefilement(); for (let k = 0; k < n; k++) avancer(dt); } };

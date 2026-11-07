@@ -390,31 +390,28 @@ footer a:hover{color:var(--texte)}
     <canvas id="scene3d" aria-label="Simulation 3D de la calibreuse Freescan"></canvas>
     <div class="etiquette3d" id="etiquette3d"><i></i><span></span></div>
     <div class="cartes3d">
-        <article class="etape3d active" data-court=""><span class="n3d">La machine</span><h3>Freescan, pièce par pièce</h3><p>Faites défiler : suivez les fruits de la caisse jusqu'au bac. Une simulation fidèle à la vraie machine, organe par organe.</p></article>
-        <article class="etape3d" data-court="Robot de chargement"><span class="n3d">01 · Chargement</span><h3>Robot de chargement</h3><p>Le robot saisit les caisses pleines et les vide dans la trémie, à cadence régulière. La tête de ligne n'est plus un poste de manutention.</p></article>
-        <article class="etape3d" data-court="Aligneur"><span class="n3d">02 · Alignement</span><h3>Aligneur à rouleaux</h3><p>Les rouleaux en rotation étalent le vrac et rabattent les fruits en file, une file par voie. Un godet, un fruit : jamais de doublon.</p></article>
-        <article class="etape3d" data-court="Godets"><span class="n3d">03 · Convoyage</span><h3>Chaîne de godets</h3><p>Chaque fruit voyage dans son godet, suivi pas à pas par un codeur jusqu'à sa sortie. En avançant, il tourne sur lui-même pour montrer toutes ses faces.</p></article>
-        <article class="etape3d" data-court="Vision + IA"><span class="n3d">04 · Vision</span><h3>Tunnel de vision</h3><p>Caméras couleur et infrarouges sous éclairage piloté : 6 vues par fruit, 10 pour la myrtille. L'IA mesure le calibre, la couleur et reconnaît les défauts.</p></article>
-        <article class="etape3d" data-court="Humidité SWIR"><span class="n3d">05 · Spectrométrie</span><h3>Station SWIR</h3><p>Pour la datte, un spectromètre infrarouge à ondes courtes lit l'eau contenue dans chaque fruit : son humidité réelle, invisible à l'œil.</p></article>
-        <article class="etape3d" data-court="Buses de soufflage"><span class="n3d">06 · Éjection</span><h3>Soufflage</h3><p>Au moment exact où le fruit passe devant sa sortie, une électrovanne libère un jet d'air bref : le fruit quitte son godet sans être touché.</p></article>
-        <article class="etape3d" data-court="Bacs"><span class="n3d">07 · Réception</span><h3>Bacs de sortie</h3><p>Jusqu'à 20 sorties par module. Chaque bac reçoit une seule classe : calibre × couleur × qualité. Un fruit sans place possible repasse.</p></article>
-        <article class="etape3d" data-court="Pupitre"><span class="n3d">08 · Pilotage</span><h3>Pupitre opérateur</h3><p>L'écran tactile montre toute la ligne en temps réel. Une recette par variété : on change de produit en quelques secondes.</p></article>
+        <article class="etape3d active" data-court=""><span class="n3d">La machine</span><h3>Freescan tomate cerise, pièce par pièce</h3><p>Faites défiler : suivez les tomates de la caisse jusqu'au bac, organe par organe.</p></article>
+        <article class="etape3d" data-court="Robot de chargement"><span class="n3d">01 · Chargement</span><h3>Robot de chargement</h3><p>Le robot saisit les caisses pleines et les vide dans la trémie, à cadence régulière.</p></article>
+        <article class="etape3d" data-court="Élévateur"><span class="n3d">02 · Élévation</span><h3>Élévateur à tasseaux</h3><p>Un tapis incliné à tasseaux monte le vrac en douceur jusqu'à l'entrée de la machine.</p></article>
+        <article class="etape3d" data-court="Aligneur"><span class="n3d">03 · Alignement</span><h3>Aligneur</h3><p>Des diviseurs inox répartissent les tomates sur les huit lignes de la machine.</p></article>
+        <article class="etape3d" data-court="Chaîne de godets"><span class="n3d">04 · Convoyage</span><h3>Chaînes de godets</h3><p>Chaque ligne est une chaîne de godets : un fruit par godet, suivi jusqu'à sa sortie. Des rouleaux le font tourner pour montrer toutes ses faces.</p></article>
+        <article class="etape3d" data-court="Tunnel de vision"><span class="n3d">05 · Vision</span><h3>Tunnel de vision</h3><p>Caméras et éclairage piloté : chaque tomate est vue sous tous les angles, et l'IA juge calibre, couleur et défauts.</p></article>
+        <article class="etape3d" data-court="Éjection"><span class="n3d">06 · Éjection</span><h3>Éjection</h3><p>Devant sa station, un jet d'air bref fait quitter son godet au fruit, sans le toucher.</p></article>
+        <article class="etape3d" data-court="Stations ST"><span class="n3d">07 · Sorties</span><h3>Stations de sortie</h3><p>Une station par sortie : un tapis transversal conduit chaque classe vers sa caisse.</p></article>
+        <article class="etape3d" data-court="Pupitre"><span class="n3d">08 · Pilotage</span><h3>Pupitre opérateur</h3><p>L'écran tactile montre toute la ligne en temps réel, et une recette par variété.</p></article>
     </div>
     <nav class="sommaire3d" aria-label="Organes de la machine">
-          <button class="active">Vue d'ensemble</button>
+          <button class="active">Vue d&#39;ensemble</button>
           <button>Robot de chargement</button>
-          <button>Aligneur à rouleaux</button>
-          <button>Chaîne de godets</button>
+          <button>Élévateur à tasseaux</button>
+          <button>Aligneur</button>
+          <button>Chaînes de godets</button>
           <button>Tunnel de vision</button>
-          <button>Station SWIR</button>
-          <button>Soufflage</button>
-          <button>Bacs de sortie</button>
+          <button>Éjection</button>
+          <button>Stations de sortie</button>
           <button>Pupitre opérateur</button>
     </nav>
-    <div class="fruits3d" role="group" aria-label="Fruit simulé">
-      <button class="active" data-fruit3d="tomate-cerise">Tomate cerise</button><button data-fruit3d="tomate">Tomate</button><button data-fruit3d="orange">Orange</button><button data-fruit3d="datte">Datte</button><button data-fruit3d="myrtille">Myrtille</button>
-    </div>
-    <div class="repli3d"><img src="media/cgi/hero.jpg" alt="Calibreuse Freescan"></div>
+        <div class="repli3d"><img src="media/cgi/hero.jpg" alt="Calibreuse Freescan"></div>
   </div>
 </section>
 
