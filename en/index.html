@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Freescan — Intelligent optical fruit grader | AEM</title>
+<meta name="description" content="Freescan, the AI-powered optical grader designed and built in Morocco by AEM: cherry tomato, tomato, orange, date, blueberry. Size, colour, defects, moisture.">
+<meta property="og:title" content="Freescan — Every fruit, seen from every angle">
+<meta property="og:description" content="AI-powered optical grader, designed and built in Morocco by AEM.">
+<meta property="og:image" content="https://freescan.ma/media/cgi/hero.jpg">
+<meta property="og:type" content="website">
+<link rel="canonical" href="https://freescan.ma/en/">
+<link rel="alternate" hreflang="fr" href="https://freescan.ma/">
+<link rel="alternate" hreflang="en" href="https://freescan.ma/en/">
+<link rel="alternate" hreflang="ar" href="https://freescan.ma/ar/">
+<link rel="alternate" hreflang="x-default" href="https://freescan.ma/">
+<meta name="theme-color" content="#060a13">
+<link rel="icon" href="../media/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fond:#060a13; --fond2:#0b1220; --carte:#0f1828; --trait:rgba(255,255,255,.09);
+  --texte:#eef2f8; --doux:#9aa7bd; --pale:#6b788e;
+  --bleu:#4a8fe0; --bleu2:#7db4ff; --accent:#ff5a3c;
+  --r:22px; --max:1200px;
+  --titre:"Space Grotesk",system-ui,sans-serif; --corps:"Inter",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--fond);color:var(--texte);font:16px/1.6 var(--corps);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+img,video{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+.enveloppe{width:min(var(--max),100% - 32px);margin-inline:auto}
+h1,h2,h3{font-family:var(--titre);font-weight:600;letter-spacing:-.02em;line-height:1.05}
+.surtitre{font:600 12px/1 var(--corps);letter-spacing:.18em;text-transform:uppercase;color:var(--bleu2);display:inline-flex;gap:10px;align-items:center}
+.surtitre::before{content:"";width:22px;height:1px;background:currentColor}
+.section{padding:clamp(80px,12vw,150px) 0}
+.section h2{font-size:clamp(34px,5.4vw,64px);margin:18px 0 20px;max-width:16ch}
+.section .chapo{color:var(--doux);font-size:clamp(17px,1.6vw,20px);max-width:56ch}
+.bouton{display:inline-flex;align-items:center;gap:10px;padding:15px 26px;border-radius:999px;font-weight:600;font-size:15px;transition:transform .25s,background .25s,box-shadow .25s;cursor:pointer;border:0}
+.bouton.plein{background:var(--texte);color:var(--fond)}
+.bouton.plein:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(125,180,255,.35)}
+.bouton.verre{background:rgba(255,255,255,.08);color:var(--texte);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(10px)}
+.bouton.verre:hover{background:rgba(255,255,255,.16)}
+.bouton svg{width:18px;height:18px}
+
+/* navigation */
+.nav{position:fixed;inset:0 0 auto;z-index:50;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.pleine{background:rgba(6,10,19,.72);backdrop-filter:blur(16px) saturate(1.4);border-color:var(--trait)}
+.nav .enveloppe{display:flex;align-items:center;justify-content:space-between;height:72px}
+.nav img{height:42px;width:auto}
+.nav ul{display:flex;gap:30px;list-style:none;font-size:14px;color:var(--doux)}
+.nav ul a:hover{color:var(--texte)}
+.nav .bouton{padding:10px 18px;font-size:14px}
+@media (max-width:820px){.nav ul{display:none}}
+.nav-droite{display:flex;align-items:center;gap:14px}
+.langues-nav{display:flex;gap:2px;font-size:13px;font-weight:600}
+.langues-nav a{padding:6px 9px;border-radius:999px;color:var(--doux);transition:color .2s,background .2s}
+.langues-nav a:hover{color:var(--texte)}
+.langues-nav a[aria-current]{color:var(--texte);background:rgba(255,255,255,.1)}
+@media (max-width:480px){.nav .bouton{display:none}}
+
+/* hero */
+.hero{position:relative;min-height:min(100svh,1000px);display:grid;align-items:end;overflow:hidden}
+.hero .fond-hero{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:zoomlent 24s ease-in-out infinite alternate}
+@keyframes zoomlent{from{transform:scale(1.02) translate(0,0)}to{transform:scale(1.14) translate(-2%,-1%)}}
+.hero::after{content:"";position:absolute;inset:0;background:
+  linear-gradient(180deg,rgba(6,10,19,.55) 0%,rgba(6,10,19,0) 30%,rgba(6,10,19,.25) 55%,var(--fond) 100%),
+  radial-gradient(120% 80% at 0% 100%,rgba(6,10,19,.9),transparent 60%),
+  linear-gradient(90deg,rgba(6,10,19,.82) 0%,rgba(6,10,19,.45) 45%,transparent 75%)}
+.hero .enveloppe{position:relative;z-index:2;padding-bottom:clamp(60px,10vh,120px)}
+.hero h1{font-size:clamp(44px,8.4vw,112px);max-width:12ch;margin:22px 0 24px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,#ff7a45,#ffb347 35%,#7db4ff 70%,#9b8cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:clamp(17px,1.8vw,21px);color:#c7d0de;max-width:48ch;margin-bottom:34px}
+.hero .actions{display:flex;gap:14px;flex-wrap:wrap}
+.badge-maroc{display:inline-flex;align-items:center;gap:10px;padding:8px 14px 8px 8px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px);font-size:13px;color:#dbe3ef}
+.badge-maroc b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#c1272d;color:#fff;font-size:12px}
+.defile-bas{position:absolute;z-index:2;right:32px;bottom:40px;font-size:12px;letter-spacing:.2em;color:var(--doux);writing-mode:vertical-rl;display:flex;align-items:center;gap:12px}
+.defile-bas::after{content:"";width:1px;height:60px;background:linear-gradient(var(--doux),transparent);animation:goutte 2.2s infinite}
+@keyframes goutte{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+@media (max-width:820px){.defile-bas{display:none}.hero::after{background:linear-gradient(180deg,rgba(6,10,19,.5) 0%,rgba(6,10,19,.35) 30%,rgba(6,10,19,.8) 60%,var(--fond) 100%)}}
+
+/* bandeau défilant */
+.bandeau{border-block:1px solid var(--trait);overflow:hidden;padding:22px 0;background:var(--fond2)}
+.bandeau .piste{display:flex;gap:56px;width:max-content;animation:defile 38s linear infinite;font:500 clamp(18px,2vw,24px)/1 var(--titre);color:#c9d3e2;white-space:nowrap}
+.bandeau span{display:flex;align-items:center;gap:56px}
+.bandeau span::after{content:"✦";color:var(--bleu);font-size:.7em}
+@keyframes defile{to{transform:translateX(-50%)}}
+
+/* carrousel fruits */
+.technos{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:56px}
+.techno{border-radius:var(--r);background:var(--carte);border:1px solid var(--trait);overflow:hidden}
+.techno img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:transform 1.2s cubic-bezier(.2,.8,.2,1)}
+.techno:hover img{transform:scale(1.05)}
+.techno .corps{padding:22px 24px 26px}
+.techno h3{font-size:22px;margin-bottom:6px}
+.techno p{color:var(--doux);font-size:15px}
+@media (max-width:900px){.technos{grid-template-columns:1fr}}
+
+.fruits{position:relative;transition:background 1s}
+.fruits .tete{display:flex;justify-content:space-between;align-items:end;gap:30px;flex-wrap:wrap;margin-bottom:46px}
+.carrousel{position:relative}
+.diapos{position:relative;height:clamp(460px,48vw,560px)}
+.diapo{position:absolute;inset:0;display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(24px,4vw,60px);align-items:center;opacity:0;visibility:hidden;transition:opacity .8s ease,visibility .8s}
+.diapo.active{opacity:1;visibility:visible}
+.diapo .media{position:relative;height:100%;border-radius:calc(var(--r) + 8px);overflow:hidden;background:#000;box-shadow:0 40px 120px -30px var(--teinte)}
+.diapo .media img{width:100%;height:100%;object-fit:cover;transform:scale(1.14);transition:transform 9s ease-out}
+.diapo.active .media img{transform:scale(1)}
+.diapo .media .etiquette{position:absolute;left:18px;bottom:18px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.45);backdrop-filter:blur(8px);font-size:13px;border:1px solid rgba(255,255,255,.15)}
+.diapo .num{font:500 14px var(--titre);color:var(--teinte);letter-spacing:.1em}
+.diapo h3{font-size:clamp(40px,6vw,84px);margin:10px 0 18px}
+.diapo h3 .point{color:var(--teinte)}
+.diapo .texte p{color:var(--doux);font-size:18px;max-width:44ch;margin-bottom:26px}
+.diapo .texte > *{transform:translateY(24px);opacity:0;transition:transform .9s cubic-bezier(.2,.8,.2,1),opacity .9s}
+.diapo.active .texte > *{transform:none;opacity:1}
+.diapo.active .texte > :nth-child(2){transition-delay:.08s}.diapo.active .texte > :nth-child(3){transition-delay:.16s}.diapo.active .texte > :nth-child(4){transition-delay:.24s}.diapo.active .texte > :nth-child(5){transition-delay:.32s}
+.criteres{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}
+.critere{padding:14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--trait)}
+.critere b{display:block;font:600 15px var(--titre);color:var(--texte)}
+.critere small{color:var(--pale);font-size:12.5px}
+.defauts{display:flex;flex-wrap:wrap;gap:8px}
+.defauts span{font-size:13px;padding:6px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--teinte) 45%,transparent);color:color-mix(in srgb,var(--teinte) 70%,#fff)}
+.commandes{display:flex;align-items:center;gap:18px;margin-top:34px}
+.puces{display:flex;gap:10px;flex:1}
+.puce{flex:1;max-width:150px;text-align:left;background:none;border:0;color:var(--pale);cursor:pointer;font:500 13px var(--corps);padding-top:12px;position:relative}
+.puce::before,.puce i{content:"";position:absolute;left:0;top:0;height:2px;width:100%;background:var(--trait);border-radius:2px}
+.puce i{background:var(--texte);width:0}
+.puce.active{color:var(--texte)}
+.fleche{width:48px;height:48px;border-radius:50%;border:1px solid var(--trait);background:rgba(255,255,255,.03);color:var(--texte);display:grid;place-items:center;cursor:pointer;transition:background .2s}
+.fleche:hover{background:rgba(255,255,255,.1)}
+.fleche svg{width:20px;height:20px}
+@media (max-width:900px){
+  .diapos{height:auto}
+  .diapo{position:relative;grid-template-columns:1fr;display:none}
+  .diapo.active{display:grid}
+  .diapo .media{height:62vw;min-height:240px}
+  .criteres{grid-template-columns:1fr 1fr 1fr}
+  .puce{font-size:0;padding-top:6px}
+}
+
+
+/* vitrine machine */
+.vitrine{position:relative;margin-top:56px;border-radius:calc(var(--r) + 8px);overflow:hidden;aspect-ratio:16/9;max-height:760px;width:100%;box-shadow:0 60px 140px -60px rgba(74,143,224,.6)}
+.vitrine img{width:100%;height:100%;object-fit:cover;object-position:50% 40%}
+.vitrine::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(6,10,19,.75))}
+.repere{position:absolute;z-index:2;padding:12px 16px;border-radius:14px;background:rgba(6,10,19,.6);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.16);font-size:13px;max-width:240px}
+.repere b{display:block;font:600 15px var(--titre)}
+.repere span{color:#b6c1d2}
+.repere::before{content:"";position:absolute;left:-7px;top:16px;width:10px;height:10px;border-radius:50%;background:var(--bleu2);box-shadow:0 0 0 6px rgba(125,180,255,.25)}
+.r1{left:19%;top:22%}.r2{left:56%;bottom:24%}.r3{left:4%;bottom:7%}
+@media (max-width:700px){.vitrine{aspect-ratio:4/3}.repere{display:none}}
+
+
+/* simulation 3D */
+.anatomie{position:relative;background:#0a1120}
+.scene-fixe{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
+#scene3d{width:100%;height:100%;display:block}
+.repli3d{display:none;position:absolute;inset:0}.repli3d img{width:100%;height:100%;object-fit:cover;opacity:.5}
+.sans-webgl .repli3d{display:block}
+.cartes3d{position:absolute;left:max(16px,calc((100vw - var(--max))/2));top:50%;transform:translateY(-50%);width:min(400px,calc(100% - 32px));pointer-events:none}
+.etape3d{position:absolute;inset:auto 0 auto 0;top:0;transform:translateY(-50%) translateX(-14px);opacity:0;transition:opacity .5s,transform .6s cubic-bezier(.2,.8,.2,1);padding:26px 28px;border-radius:20px;background:rgba(6,10,19,.62);backdrop-filter:blur(14px) saturate(1.3);border:1px solid rgba(255,255,255,.12)}
+.etape3d.active{opacity:1;transform:translateY(-50%)}
+.etape3d .n3d{font:600 12px var(--corps);letter-spacing:.16em;text-transform:uppercase;color:var(--bleu2)}
+.etape3d h3{font-size:clamp(28px,3.2vw,40px);margin:10px 0 12px}
+.etape3d p{color:#c3cddb;font-size:16px}
+.sommaire3d{position:absolute;right:max(16px,calc((100vw - var(--max))/2));top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px}
+.sommaire3d button{all:unset;cursor:pointer;font-size:13px;color:var(--pale);padding:6px 0 6px 18px;position:relative;text-align:right;transition:color .3s}
+.sommaire3d button::before{content:"";position:absolute;left:0;top:50%;width:8px;height:8px;border-radius:50%;transform:translateY(-50%);background:rgba(255,255,255,.18);transition:background .3s,box-shadow .3s}
+.sommaire3d button.active{color:var(--texte)}
+.sommaire3d button.active::before{background:var(--bleu2);box-shadow:0 0 0 5px rgba(125,180,255,.2)}
+.fruits3d{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);display:flex;gap:6px;padding:6px;border-radius:999px;background:rgba(6,10,19,.6);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12)}
+.fruits3d button{all:unset;cursor:pointer;font-size:13px;padding:8px 14px;border-radius:999px;color:var(--doux);white-space:nowrap}
+.fruits3d button.active{background:var(--texte);color:var(--fond)}
+.etiquette3d{position:absolute;left:0;top:0;pointer-events:none;transition:opacity .4s;opacity:0}
+.etiquette3d i{position:absolute;left:-7px;top:-7px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 0 0 6px rgba(125,180,255,.35),0 0 24px #7db4ff;animation:pouls 1.6s infinite}
+.etiquette3d span{position:absolute;left:18px;top:-38px;white-space:nowrap;font:600 13px var(--titre);padding:6px 12px;border-radius:999px;background:#fff;color:var(--fond)}
+@keyframes pouls{50%{box-shadow:0 0 0 12px rgba(125,180,255,0),0 0 24px #7db4ff}}
+@media (max-width:900px){
+  .sommaire3d{display:none}
+  .cartes3d{top:auto;bottom:84px;transform:none;left:16px;width:calc(100% - 32px)}
+  .etape3d{top:auto;bottom:0;transform:translateY(14px)}.etape3d.active{transform:none}
+  .etape3d{padding:18px 20px}.etape3d p{font-size:14.5px}
+  .fruits3d{bottom:16px;max-width:calc(100% - 24px);overflow-x:auto}
+}
+
+/* étapes */
+.etapes{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px;counter-reset:e}
+.etape{position:relative;border-radius:var(--r);overflow:hidden;background:var(--carte);border:1px solid var(--trait);min-height:420px;display:flex;flex-direction:column;justify-content:flex-end;padding:26px;isolation:isolate}
+.etape img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;transition:transform 1.2s cubic-bezier(.2,.8,.2,1)}
+.etape::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(6,10,19,.1) 20%,rgba(6,10,19,.92) 75%)}
+.etape:hover img{transform:scale(1.07)}
+.etape .n{font:600 13px var(--titre);color:var(--bleu2);letter-spacing:.14em}
+.etape h3{font-size:28px;margin:8px 0 10px}
+.etape p{color:#b6c1d2;font-size:15px}
+@media (max-width:980px){.etapes{grid-template-columns:1fr 1fr}.etape{min-height:340px}}
+@media (max-width:560px){.etapes{grid-template-columns:1fr}}
+
+/* logiciel (bento) */
+.logiciel{background:radial-gradient(80% 60% at 80% 0%,rgba(74,143,224,.16),transparent 60%),var(--fond2)}
+.bento{display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:minmax(150px,auto);gap:16px;margin-top:60px}
+.tuile{border-radius:var(--r);background:var(--carte);border:1px solid var(--trait);padding:28px;position:relative;overflow:hidden}
+.tuile h3{font-size:22px;margin-bottom:8px}
+.tuile p{color:var(--doux);font-size:15px}
+.tuile .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:rgba(74,143,224,.14);color:var(--bleu2);margin-bottom:18px}
+.tuile .ico svg{width:22px;height:22px}
+.tuile.ecran{padding:0;display:flex;flex-direction:column}
+.tuile.ecran img{width:100%;flex:1;object-fit:cover;min-height:220px}
+.tuile.ecran .legende{padding:22px 26px}
+.t1{grid-column:span 4;grid-row:span 2}.t2{grid-column:span 2}.t3{grid-column:span 2}
+.t4,.t5,.t6{grid-column:span 2}
+.t7{grid-column:span 3}.t8{grid-column:span 3}
+.langues{display:flex;gap:8px;margin-top:16px}
+.langues span{padding:6px 12px;border-radius:10px;background:rgba(255,255,255,.06);font:600 14px var(--titre)}
+.grand-chiffre{font:600 clamp(48px,6vw,72px)/1 var(--titre);background:linear-gradient(120deg,#fff,var(--bleu2));-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:6px}
+@media (max-width:980px){.bento{grid-template-columns:1fr 1fr}.t1,.t2,.t3,.t4,.t5,.t6,.t7,.t8{grid-column:span 2;grid-row:auto}.t4,.t5,.t6{grid-column:span 1}}
+@media (max-width:560px){.t4,.t5,.t6{grid-column:span 2}}
+
+/* galerie machine */
+.galerie{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:120px;gap:14px;margin-top:60px}
+.galerie figure{border-radius:18px;overflow:hidden;position:relative;background:var(--carte)}
+.galerie img{width:100%;height:100%;object-fit:cover;transition:transform 1s cubic-bezier(.2,.8,.2,1)}
+.galerie figure:hover img{transform:scale(1.06)}
+.galerie figcaption{position:absolute;left:14px;bottom:12px;font-size:13px;padding:6px 12px;border-radius:999px;background:rgba(0,0,0,.45);backdrop-filter:blur(8px)}
+.g1{grid-column:span 7;grid-row:span 4}.g2{grid-column:span 5;grid-row:span 2}.g3{grid-column:span 5;grid-row:span 2}
+.g4{grid-column:span 4;grid-row:span 2}.g5{grid-column:span 4;grid-row:span 2}.g6{grid-column:span 4;grid-row:span 2}
+@media (max-width:820px){.galerie{grid-template-columns:1fr 1fr;grid-auto-rows:150px}.galerie figure{grid-column:span 1!important;grid-row:span 1!important}.galerie .g1{grid-column:span 2!important;grid-row:span 2!important}}
+
+/* vidéo */
+.film{position:relative;border-radius:calc(var(--r) + 8px);overflow:hidden;margin-top:56px;aspect-ratio:16/9;background:#000;box-shadow:0 60px 140px -50px rgba(74,143,224,.5)}
+.film video{width:100%;height:100%;object-fit:cover}
+.film .lancer{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(0deg,rgba(6,10,19,.55),rgba(6,10,19,.15));cursor:pointer;border:0;color:#fff;transition:opacity .4s}
+.film .lancer span{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(12px);transition:transform .3s}
+.film .lancer:hover span{transform:scale(1.08)}
+.film .lancer svg{width:34px;height:34px;margin-left:5px}
+.film.joue .lancer{opacity:0;pointer-events:none}
+
+/* chiffres */
+.chiffres{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-block:1px solid var(--trait)}
+.chiffres div{padding:44px 26px;border-right:1px solid var(--trait)}
+.chiffres div:last-child{border-right:0}
+.chiffres b{display:block;font:600 clamp(40px,5vw,64px)/1 var(--titre)}
+.chiffres span{color:var(--doux);font-size:14px}
+@media (max-width:820px){.chiffres{grid-template-columns:1fr 1fr}.chiffres div:nth-child(2){border-right:0}.chiffres div:nth-child(-n+2){border-bottom:1px solid var(--trait)}}
+
+/* contact */
+.contact{position:relative;overflow:hidden}
+.contact .carte-contact{border-radius:32px;padding:clamp(32px,6vw,80px);background:
+  radial-gradient(60% 90% at 100% 0%,rgba(255,90,60,.22),transparent 60%),
+  radial-gradient(70% 90% at 0% 100%,rgba(74,143,224,.28),transparent 60%),var(--carte);
+  border:1px solid var(--trait);display:grid;grid-template-columns:1.2fr 1fr;gap:50px;align-items:center}
+.contact h2{margin-top:14px}
+.coord{display:grid;gap:12px}
+.coord a,.coord div{display:flex;gap:16px;align-items:center;padding:18px 20px;border-radius:16px;background:rgba(6,10,19,.45);border:1px solid var(--trait);transition:border-color .25s,transform .25s}
+.coord a:hover{border-color:rgba(125,180,255,.6);transform:translateX(4px)}
+.coord svg{width:22px;height:22px;flex:none;color:var(--bleu2)}
+.coord small{display:block;color:var(--pale);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+@media (max-width:900px){.contact .carte-contact{grid-template-columns:1fr}}
+
+footer{padding:50px 0 60px;color:var(--pale);font-size:14px}
+footer .enveloppe{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+footer img{height:28px;width:auto;opacity:.8}
+footer a:hover{color:var(--texte)}
+
+/* apparition */
+.apparait{opacity:0;transform:translateY(40px);transition:opacity 1s cubic-bezier(.2,.8,.2,1),transform 1s cubic-bezier(.2,.8,.2,1)}
+.apparait.vu{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .apparait{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <div class="enveloppe">
+    <a href="#haut" aria-label="Freescan, home"><img src="../media/logo-freescan.png" alt="Freescan by AEM" width="203" height="73"></a>
+    <ul>
+      <li><a href="#fruits">Fruits</a></li>
+      <li><a href="#anatomie">Simulation</a></li>
+      <li><a href="#machine">Machine</a></li>
+      <li><a href="#logiciel">Software</a></li>
+      <li><a href="#video">Video</a></li>
+    </ul>
+    <div class="nav-droite">
+      <div class="langues-nav"><a href="../" lang="fr" hreflang="fr">FR</a><a href="./" lang="en" hreflang="en" aria-current="page">EN</a><a href="../ar/" lang="ar" hreflang="ar">عربي</a></div>
+      <a class="bouton plein" href="#contact">Contact us</a>
+    </div>
+  </div>
+</header>
+
+<main id="haut">
+
+<section class="hero">
+  <img class="fond-hero" src="../media/cgi/hero.jpg" alt="Freescan optical grader in a packing house" fetchpriority="high">
+  <div class="enveloppe">
+    <span class="badge-maroc"><b>★</b>Designed and built in Morocco by AEM</span>
+    <h1>Every fruit, seen <em>from every angle.</em></h1>
+    <p>Freescan is the intelligent optical grader that photographs, measures and grades every fruit, then sends it to the right bin. Size, colour, defects, moisture: decided in an instant, fruit by fruit.</p>
+    <div class="actions">
+      <a class="bouton plein" href="#contact">Request a demo
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a class="bouton verre" href="#video">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>See the machine in action</a>
+    </div>
+  </div>
+  <div class="defile-bas">SCROLL</div>
+</section>
+
+<div class="bandeau" aria-hidden="true">
+  <div class="piste">
+    <span>Multi-angle vision</span><span>Artificial intelligence</span><span>Sizing to the gram</span><span>Colour and ripeness</span><span>External defects</span><span>Infrared moisture</span><span>Interface FR · EN · عربي</span><span>Production reports</span>
+    <span>Multi-angle vision</span><span>Artificial intelligence</span><span>Sizing to the gram</span><span>Colour and ripeness</span><span>External defects</span><span>Infrared moisture</span><span>Interface FR · EN · عربي</span><span>Production reports</span>
+  </div>
+</div>
+
+<!-- Carrousel fruits -->
+<section class="section fruits" id="fruits">
+  <div class="enveloppe">
+    <div class="tete apparait">
+      <div>
+        <span class="surtitre">Three technologies, every fruit</span>
+        <h2>See what the eye cannot.</h2>
+      </div>
+      <p class="chapo">Every fruit has its signature. Freescan lights it, measures it and judges it, for fair, consistent grading.</p>
+    </div>
+    <div class="technos">
+      <div class="techno apparait"><img src="../media/cgi/t-ia.jpg" alt="Cherry tomatoes on the outfeed belt" loading="lazy"><div class="corps"><h3>Artificial intelligence</h3><p>AI trained on your fruit, judging each one with the same consistency.</p></div></div>
+      <div class="techno apparait"><img src="../media/cgi/t-led.jpg" alt="Oranges under dedicated LED lighting" loading="lazy"><div class="corps"><h3>Dedicated lighting</h3><p>Light chosen to reveal what matters on each product.</p></div></div>
+      <div class="techno apparait"><img src="../media/cgi/t-spectral.jpg" alt="Dates measured by a spectral sensor" loading="lazy"><div class="corps"><h3>Spectral sensors</h3><p>A measurement that goes beyond the visible.</p></div></div>
+    </div>
+
+    <div class="carrousel" id="carrousel" aria-roledescription="carousel">
+      <div class="diapos">
+
+        <article class="diapo active" style="--teinte:#ff3b3b" data-fond="#140708">
+          <div class="media"><img src="../media/cgi/f-tomate-cerise.jpg" alt="" loading="lazy"><span class="etiquette">Cherry tomato</span></div>
+          <div class="texte">
+            <span class="num">01 / 05</span>
+            <h3>Cherry tomato<span class="point">.</span></h3>
+            <p>Precise, steady grading at full speed, gentle on the fruit.</p>
+          </div>
+        </article>
+
+        <article class="diapo" style="--teinte:#ff5a3c" data-fond="#150a07">
+          <div class="media"><img src="../media/cgi/f-tomate.jpg" alt="" loading="lazy"><span class="etiquette">Tomato</span></div>
+          <div class="texte">
+            <span class="num">02 / 05</span>
+            <h3>Tomato<span class="point">.</span></h3>
+            <p>Uniform batches, crate after crate.</p>
+          </div>
+        </article>
+
+        <article class="diapo" style="--teinte:#ff9f1a" data-fond="#150d04">
+          <div class="media"><img src="../media/cgi/f-orange.jpg" alt="" loading="lazy"><span class="etiquette">Orange and citrus</span></div>
+          <div class="texte">
+            <span class="num">03 / 05</span>
+            <h3>Orange<span class="point">.</span></h3>
+            <p>Consistent quality, ready for the most demanding markets.</p>
+          </div>
+        </article>
+
+        <article class="diapo" style="--teinte:#c8782e" data-fond="#120a05">
+          <div class="media"><img src="../media/cgi/f-datte.jpg" alt="" loading="lazy"><span class="etiquette">Date</span></div>
+          <div class="texte">
+            <span class="num">04 / 05</span>
+            <h3>Date<span class="point">.</span></h3>
+            <p>Quality measured beyond appearance.</p>
+          </div>
+        </article>
+
+        <article class="diapo" style="--teinte:#7b6cff" data-fond="#0a0a18">
+          <div class="media"><img src="../media/cgi/f-myrtille.jpg" alt="" loading="lazy"><span class="etiquette">Blueberry</span></div>
+          <div class="texte">
+            <span class="num">05 / 05</span>
+            <h3>Blueberry<span class="point">.</span></h3>
+            <p>Care for every berry, the gentlest handling.</p>
+          </div>
+        </article>
+
+      </div>
+
+      <div class="commandes">
+        <div class="puces" role="tablist">
+          <button class="puce active" role="tab" aria-label="Cherry tomato"><i></i>Cherry tomato</button>
+          <button class="puce" role="tab" aria-label="Tomato"><i></i>Tomato</button>
+          <button class="puce" role="tab" aria-label="Orange"><i></i>Orange</button>
+          <button class="puce" role="tab" aria-label="Date"><i></i>Date</button>
+          <button class="puce" role="tab" aria-label="Blueberry"><i></i>Blueberry</button>
+        </div>
+        <button class="fleche" id="prec" aria-label="Previous fruit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <button class="fleche" id="suiv" aria-label="Next fruit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Simulation 3D -->
+<section class="anatomie" id="anatomie" style="height:910vh">
+  <div class="scene-fixe">
+    <canvas id="scene3d" aria-label="3D simulation of the Freescan grader"></canvas>
+    <div class="etiquette3d" id="etiquette3d"><i></i><span></span></div>
+    <div class="cartes3d">
+        <article class="etape3d active" data-court=""><span class="n3d">The machine</span><h3>Freescan for cherry tomatoes, part by part</h3><p>Scroll down: follow the tomatoes from crate to bin, one unit at a time.</p></article>
+        <article class="etape3d" data-court="Robot and crate tipper"><span class="n3d">01 · Loading</span><h3>Robot and crate tipper</h3><p>A 4-axis robot picks the full crates from the pallet and sets them lengthwise on a conveyor that carries them up to the tipper. As soon as two crates are in place, the drum turns and gently empties the tomatoes onto the belt.</p></article>
+        <article class="etape3d" data-court="Elevator"><span class="n3d">02 · Elevation</span><h3>Cleated elevator</h3><p>An inclined cleated belt gently lifts the bulk fruit to the machine infeed.</p></article>
+        <article class="etape3d" data-court="Aligner"><span class="n3d">03 · Alignment</span><h3>Aligner</h3><p>Stainless-steel dividers spread the tomatoes across the machine's eight lanes.</p></article>
+        <article class="etape3d" data-court="Roller chain"><span class="n3d">04 · Conveying</span><h3>Roller chains</h3><p>Each lane is a chain fitted with spool rollers: one tomato between two axles, tracked to its exit. The rollers turn it to show every side.</p></article>
+        <article class="etape3d" data-court="Electrical cabinet"><span class="n3d">05 · Control</span><h3>Electrical cabinet</h3><p>At the entrance to the vision cell, the cabinet carries the touchscreen: the whole line in real time, and one recipe per variety.</p></article>
+        <article class="etape3d" data-court="Vision tunnel"><span class="n3d">06 · Vision</span><h3>Vision tunnel</h3><p>Cameras and controlled lighting: every tomato is seen from every angle, and the AI judges size, colour and defects.</p></article>
+        <article class="etape3d" data-court="SWIR cell"><span class="n3d">07 · Spectral</span><h3>SWIR cell</h3><p>A short-wave infrared sensor measures what the eye cannot see, deep inside each fruit.</p></article>
+        <article class="etape3d" data-court="Ejection"><span class="n3d">08 · Ejection</span><h3>Ejection</h3><p>In front of its station, a short air jet lifts the fruit out of its cup without touching it.</p></article>
+        <article class="etape3d" data-court="ST stations"><span class="n3d">09 · Outlets</span><h3>Outlet stations</h3><p>One station per outlet: a belt runs under the chain and carries each grade to its crate, all on the same side. On the other side, an empty crate waits to take over.</p></article>
+    </div>
+    <nav class="sommaire3d" aria-label="Machine units">
+          <button class="active">Overview</button>
+          <button>Robot and crate tipper</button>
+          <button>Cleated elevator</button>
+          <button>Aligner</button>
+          <button>Roller chains</button>
+          <button>Electrical cabinet</button>
+          <button>Vision tunnel</button>
+          <button>SWIR cell</button>
+          <button>Ejection</button>
+          <button>Outlet stations</button>
+    </nav>
+        <div class="repli3d"><img src="../media/cgi/hero.jpg" alt="Freescan grader"></div>
+  </div>
+</section>
+
+<!-- Comment ça marche -->
+<section class="section" id="machine">
+  <div class="enveloppe">
+    <div class="apparait">
+      <span class="surtitre">The machine</span>
+      <h2>From crate to bin, without hesitation.</h2>
+      <p class="chapo">Fruit moves forward one by one on several lanes. Each one is tracked from the camera to its exit.</p>
+    </div>
+    <div class="vitrine apparait">
+      <img src="../media/cgi/pupitre.jpg" alt="Freescan operator console and grading lanes" loading="lazy">
+      <div class="repere r1"><b>Touch console</b><span>the whole line on one screen</span></div>
+      <div class="repere r2"><b>Parallel lanes</b><span>one fruit per cup, tracked to the bin</span></div>
+      <div class="repere r3"><b>Food-grade stainless steel</b><span>designed and built in Agadir</span></div>
+    </div>
+    <div class="etapes">
+      <div class="etape apparait"><img src="../media/cgi/voir.jpg" alt="Grading line loaded with cherry tomatoes" loading="lazy"><span class="n">01</span><h3>See</h3><p>Colour and infrared cameras, controlled lighting: every fruit is photographed from several angles as it rotates.</p></div>
+      <div class="etape apparait"><img src="../media/cgi/mesurer.jpg" alt="Fruit in their cups" loading="lazy"><span class="n">02</span><h3>Measure</h3><p>Size, colour and defects recognised by a neural network and, for dates, infrared moisture.</p></div>
+      <div class="etape apparait"><img src="../media/cgi/decider.jpg" alt="Fruit distributed to the outlets" loading="lazy"><span class="n">03</span><h3>Decide</h3><p>Each outlet accepts a size × colour × quality combination. A fruit with no possible place goes round again; it is not lost.</p></div>
+      <div class="etape apparait"><img src="../media/cgi/ejecter.jpg" alt="Grader outlet to the bins" loading="lazy"><span class="n">04</span><h3>Eject</h3><p>The ejector at the right outlet fires at the exact moment the fruit passes.</p></div>
+    </div>
+
+    <div class="galerie" id="galerie">
+      <figure class="g1 apparait"><img src="../media/cgi/g-godets.jpg" alt="Blue-cup lanes of the Freescan grader" loading="lazy"><figcaption>Cups</figcaption></figure>
+      <figure class="g2 apparait"><img src="../media/cgi/g-hall.jpg" alt="Complete grading line" loading="lazy"><figcaption>Complete line</figcaption></figure>
+      <figure class="g3 apparait"><img src="../media/cgi/g-panorama.jpg" alt="Freescan grader, panoramic view" loading="lazy"><figcaption>Overview</figcaption></figure>
+      <figure class="g4 apparait"><img src="../media/cgi/g-voies.jpg" alt="Grading lanes loaded with tomatoes" loading="lazy"><figcaption>Grading lanes</figcaption></figure>
+      <figure class="g5 apparait"><img src="../media/cgi/g-dessus.jpg" alt="Lanes seen from above" loading="lazy"><figcaption>Top view</figcaption></figure>
+      <figure class="g6 apparait"><img src="../media/cgi/f-datte.jpg" alt="Dates on the grading lanes" loading="lazy"><figcaption>Date</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- Logiciel -->
+<section class="section logiciel" id="logiciel">
+  <div class="enveloppe">
+    <div class="apparait">
+      <span class="surtitre">Freescan software</span>
+      <h2>The whole line at a glance.</h2>
+      <p class="chapo">A touch interface designed for the shop floor: large buttons, statuses readable from afar, and settings that stay in the hands of authorised people.</p>
+    </div>
+    <div class="bento">
+      <div class="tuile ecran t1 apparait"><img src="../media/ui-suivi.jpg" alt="Freescan production monitoring screen" loading="lazy"><div class="legende"><h3>Real-time production monitoring</h3><p>Grading status, bin filling, breakdown by size, colour and quality, camera images.</p></div></div>
+      <div class="tuile ecran t2 apparait"><img src="../media/ui-couleur.jpg" alt="Colour definition screen" loading="lazy"><div class="legende"><h3>Adjustable colour</h3><p>Hue histogram, thresholds set by touch.</p></div></div>
+      <div class="tuile ecran t3 apparait"><img src="../media/ui-vues.jpg" alt="Operator defect qualification screen" loading="lazy"><div class="legende"><h3>The operator confirms</h3><p>A doubtful defect? Yes or no: the AI learns.</p></div></div>
+      <div class="tuile t4 apparait"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9zM9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg></div><h3>AI on GPU</h3><p>Neural networks trained on your fruit, running on a graphics card.</p></div>
+      <div class="tuile t5 apparait"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><h3>Ejection matrix</h3><p>Each outlet, its own size × colour × quality combination, set on screen.</p></div>
+      <div class="tuile t6 apparait"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></div><h3>Reports</h3><p>Batch summary: quantities, sizes, colours, defects, ready to send.</p></div>
+      <div class="tuile t7 apparait"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg></div><h3>Speaks the language of the shop floor</h3><p>Interface and online help illustrated with videos, in three languages.</p><div class="langues"><span>FR</span><span>EN</span><span>عربي</span></div></div>
+      <div class="tuile t8 apparait"><div class="grand-chiffre">1 recipe</div><h3>per variety</h3><p>Sizes, colours, defects and outlet assignments are saved per variety: switch products in seconds.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Vidéo -->
+<section class="section" id="video">
+  <div class="enveloppe">
+    <div class="apparait">
+      <span class="surtitre">In action</span>
+      <h2>Freescan in the field.</h2>
+      <p class="chapo">From fruit around the world to Moroccan packing lines: see the grader in production.</p>
+    </div>
+    <div class="film apparait" id="film">
+      <video preload="none" playsinline controls poster="../media/presentation.jpg"><source src="../media/presentation.mp4" type="video/mp4"></video>
+      <button class="lancer" aria-label="Play the video"><span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></span></button>
+    </div>
+  </div>
+</section>
+
+<!-- AEM -->
+<section class="enveloppe apparait">
+  <div class="chiffres">
+    <div><b data-compte="20">20+</b><span>years of experience</span></div>
+    <div><b data-compte="120">120+</b><span>projects delivered</span></div>
+    <div><b data-compte="60">60+</b><span>clients</span></div>
+    <div><b>100 %</b><span>designed and built in Morocco</span></div>
+  </div>
+</section>
+
+<section class="section contact" id="contact">
+  <div class="enveloppe">
+    <div class="carte-contact apparait">
+      <div>
+        <img src="../media/logo-aem.png" alt="AEM" style="height:54px;width:auto;margin-bottom:18px"><br><span class="surtitre">AEM · Aït Melloul Électromécanique</span>
+        <h2>Let's talk about your fruit.</h2>
+        <p class="chapo">Send us your products and your grading requirements: we'll show you what Freescan does with them.</p>
+      </div>
+      <div class="coord">
+        <a href="mailto:contact@aem.industries?subject=Freescan%20%E2%80%94%20information%20request"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg><span><small>Email</small>contact@aem.industries</span></a>
+        <a href="tel:+212528244482"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg><span><small>Phone</small>+212 (0)5 28 24 44 82 · +212 (0)5 28 24 85 45</span></a>
+        <a href="https://www.google.com/maps/search/?api=1&amp;query=AEM+Electrom%C3%A9canique+Z.I+Ait+Melloul+Agadir" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span><small>Address</small>82, Centre de vie, Aït Melloul Industrial Zone, Agadir</span></a>
+        <a href="https://aem.industries" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span><small>Website</small>aem.industries</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="enveloppe">
+    <img src="../media/logo-freescan.png" alt="Freescan" width="78" height="28">
+    <span>© <span id="annee">2026</span> AEM — Aït Melloul Électromécanique</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var nav=document.getElementById('nav');
+  function surDefile(){nav.classList.toggle('pleine',window.scrollY>40)}
+  window.addEventListener('scroll',surDefile,{passive:true});surDefile();
+  document.getElementById('annee').textContent=new Date().getFullYear();
+
+  // apparition au défilement
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vu');io.unobserve(e.target)}})},{threshold:.12});
+  document.querySelectorAll('.apparait').forEach(function(el,i){el.style.transitionDelay=(i%4)*80+'ms';io.observe(el)});
+
+  // compteurs
+  var ioc=new IntersectionObserver(function(es){es.forEach(function(e){
+    if(!e.isIntersecting)return; ioc.unobserve(e.target);
+    var b=e.target,fin=+b.dataset.compte,t0=null;
+    function pas(t){if(!t0)t0=t;var k=Math.min(1,(t-t0)/1400);b.textContent=Math.round(fin*(1-Math.pow(1-k,3)))+'+';if(k<1)requestAnimationFrame(pas)}
+    requestAnimationFrame(pas);
+  })},{threshold:.6});
+  document.querySelectorAll('[data-compte]').forEach(function(b){ioc.observe(b)});
+
+  // carrousel
+  var section=document.getElementById('fruits'),car=document.getElementById('carrousel');
+  var diapos=[].slice.call(car.querySelectorAll('.diapo')),puces=[].slice.call(car.querySelectorAll('.puce'));
+  var courant=0,DUREE=8000,debut=0,ecoule=0,pause=false,visible=false,raf;
+  var calme=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function montrer(i){
+    diapos[courant].classList.remove('active');puces[courant].classList.remove('active');
+    puces[courant].querySelector('i').style.width='0';
+    
+    courant=(i+diapos.length)%diapos.length;
+    var d=diapos[courant];d.classList.add('active');puces[courant].classList.add('active');
+    section.style.background='radial-gradient(70% 60% at 75% 40%,'+getComputedStyle(d).getPropertyValue('--teinte').trim()+'22,transparent 70%),'+d.dataset.fond;
+    jouer();ecoule=0;debut=performance.now();
+  }
+  function jouer(){}
+  function boucle(t){
+    if(!pause&&visible&&!calme){ecoule+=t-debut;
+      puces[courant].querySelector('i').style.width=Math.min(100,ecoule/DUREE*100)+'%';
+      if(ecoule>=DUREE)montrer(courant+1);}
+    debut=t;raf=requestAnimationFrame(boucle);
+  }
+  puces.forEach(function(p,i){p.addEventListener('click',function(){montrer(i)})});
+  document.getElementById('prec').onclick=function(){montrer(courant-1)};
+  document.getElementById('suiv').onclick=function(){montrer(courant+1)};
+  car.addEventListener('mouseenter',function(){pause=true});car.addEventListener('mouseleave',function(){pause=false});
+  document.addEventListener('keydown',function(e){if(!visible)return;if(e.key==='ArrowRight')montrer(courant+1);if(e.key==='ArrowLeft')montrer(courant-1)});
+  var x0=null;car.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});
+  car.addEventListener('touchend',function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50)montrer(courant+(dx<0?1:-1));x0=null});
+  new IntersectionObserver(function(es){visible=es[0].isIntersecting},{threshold:.25}).observe(car);
+  montrer(0);debut=performance.now();raf=requestAnimationFrame(boucle);
+
+  // film
+  var film=document.getElementById('film'),fv=film.querySelector('video');
+  film.querySelector('.lancer').onclick=function(){film.classList.add('joue');fv.play()};
+  fv.addEventListener('play',function(){film.classList.add('joue')});
+})();
+</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script>
+(function(){try{var c=document.createElement('canvas');if(!(c.getContext('webgl2')||c.getContext('webgl')))throw 0}catch(e){document.documentElement.classList.add('sans-webgl')}})();
+</script>
+<script type="module" src="../js/anatomie.js?v=17"></script>
+</body>
+</html>

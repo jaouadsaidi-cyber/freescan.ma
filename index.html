@@ -9,6 +9,11 @@
 <meta property="og:description" content="Calibreuse optique à intelligence artificielle, conçue et fabriquée au Maroc par AEM.">
 <meta property="og:image" content="https://freescan.ma/media/cgi/hero.jpg">
 <meta property="og:type" content="website">
+<link rel="canonical" href="https://freescan.ma/">
+<link rel="alternate" hreflang="fr" href="https://freescan.ma/">
+<link rel="alternate" hreflang="en" href="https://freescan.ma/en/">
+<link rel="alternate" hreflang="ar" href="https://freescan.ma/ar/">
+<link rel="alternate" hreflang="x-default" href="https://freescan.ma/">
 <meta name="theme-color" content="#060a13">
 <link rel="icon" href="media/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -50,6 +55,12 @@ h1,h2,h3{font-family:var(--titre);font-weight:600;letter-spacing:-.02em;line-hei
 .nav ul a:hover{color:var(--texte)}
 .nav .bouton{padding:10px 18px;font-size:14px}
 @media (max-width:820px){.nav ul{display:none}}
+.nav-droite{display:flex;align-items:center;gap:14px}
+.langues-nav{display:flex;gap:2px;font-size:13px;font-weight:600}
+.langues-nav a{padding:6px 9px;border-radius:999px;color:var(--doux);transition:color .2s,background .2s}
+.langues-nav a:hover{color:var(--texte)}
+.langues-nav a[aria-current]{color:var(--texte);background:rgba(255,255,255,.1)}
+@media (max-width:480px){.nav .bouton{display:none}}
 
 /* hero */
 .hero{position:relative;min-height:min(100svh,1000px);display:grid;align-items:end;overflow:hidden}
@@ -273,7 +284,10 @@ footer a:hover{color:var(--texte)}
       <li><a href="#logiciel">Logiciel</a></li>
       <li><a href="#video">Vidéo</a></li>
     </ul>
-    <a class="bouton plein" href="#contact">Nous contacter</a>
+    <div class="nav-droite">
+      <div class="langues-nav"><a href="./" lang="fr" hreflang="fr" aria-current="page">FR</a><a href="en/" lang="en" hreflang="en">EN</a><a href="ar/" lang="ar" hreflang="ar">عربي</a></div>
+      <a class="bouton plein" href="#contact">Nous contacter</a>
+    </div>
   </div>
 </header>
 
