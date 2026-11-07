@@ -12,6 +12,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 
 const section = document.getElementById('anatomie');
 const canvas = document.getElementById('scene3d');
@@ -24,8 +25,8 @@ const leger = matchMedia('(max-width: 900px)').matches;
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, leger ? 1.5 : 1.75));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.72;
+renderer.toneMapping = THREE.AgXToneMapping;
+renderer.toneMappingExposure = 1.35;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 RectAreaLightUniformsLib.init();
@@ -41,16 +42,28 @@ const scene = new THREE.Scene();
 }
 scene.fog = new THREE.Fog('#060d1a', 22, 46);
 const pmrem = new THREE.PMREMGenerator(renderer);
-scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.03).texture;
-scene.environmentIntensity = 0.32;
+{
+  const studio = new THREE.Scene(); studio.background = new THREE.Color('#05080f');
+  const boiteLum = (w, h, x, y, z, ry, rx, c, k) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(c).multiplyScalar(k), side: THREE.DoubleSide }));
+    m.position.set(x, y, z); m.rotation.set(rx, ry, 0); studio.add(m);
+  };
+  boiteLum(14, 2.2, 0, 7, 0, 0, Math.PI / 2, '#ffffff', 3.2);          // grande boîte au-dessus
+  boiteLum(10, 1.0, 0, 3.5, -7, 0, 0, '#cfe2ff', 2.0);                   // bande arrière
+  boiteLum(10, 0.5, 0, 2.0, 7, Math.PI, 0, '#5aa2ff', 2.6);              // liseré bleu avant
+  boiteLum(1.2, 6, -8, 3, 0, Math.PI / 2, 0, '#ffffff', 1.4);            // latérale
+  boiteLum(1.2, 6, 8, 3, 0, -Math.PI / 2, 0, '#9fc0ff', 1.0);
+  scene.environment = pmrem.fromScene(studio, 0.02).texture;
+}
+scene.environmentIntensity = 1.1;
 
 const camera = new THREE.PerspectiveCamera(36, 1, 0.05, 120);
 
 // lumière : clé froide au-dessus, liserés bleus derrière, débouchage faible
-scene.add(new THREE.HemisphereLight('#9fc0ff', '#0b0f18', 0.35));
+scene.add(new THREE.HemisphereLight('#9fc0ff', '#0b0f18', 0.25));
 const cle = new THREE.DirectionalLight('#e9f1ff', 1.35);
 cle.position.set(3, 12, 7); cle.castShadow = true;
-cle.shadow.mapSize.set(leger ? 1024 : 2048, leger ? 1024 : 2048);
+cle.shadow.mapSize.set(leger ? 1024 : 4096, leger ? 1024 : 4096);
 Object.assign(cle.shadow.camera, { left: -18, right: 16, top: 9, bottom: -9, near: 1, far: 34 });
 cle.shadow.bias = -0.0003; cle.shadow.radius = 4;
 scene.add(cle);
@@ -60,10 +73,16 @@ for (const [x, z, w] of [[-2, -4.2, 26], [-2, 4.2, 26]]) {
 const contre = new THREE.DirectionalLight('#5aa2ff', 1.1); contre.position.set(-8, 5, -10); scene.add(contre);
 
 // ---------- matériaux ----------
+const brosse = (() => {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 64; const g = c.getContext('2d');
+  g.fillStyle = '#808080'; g.fillRect(0, 0, 512, 64);
+  for (let i = 0; i < 1400; i++) { const v = 90 + Math.random() * 90 | 0; g.fillStyle = `rgb(${v},${v},${v})`; g.globalAlpha = 0.35; g.fillRect(Math.random() * 512, Math.random() * 64, 40 + Math.random() * 200, 1); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2, 6); return t;
+})();
 const M = {
-  inox: new THREE.MeshPhysicalMaterial({ color: '#c3cad3', metalness: 1, roughness: 0.36 }),
+  inox: new THREE.MeshPhysicalMaterial({ color: '#cfd5dc', metalness: 1, roughness: 0.32, roughnessMap: brosse }),
   caisseRouge: new THREE.MeshPhysicalMaterial({ color: '#c8392b', roughness: 0.5, clearcoat: 0.2 }),
-  inoxBrosse: new THREE.MeshPhysicalMaterial({ color: '#9ea7b2', metalness: 1, roughness: 0.5 }),
+  inoxBrosse: new THREE.MeshPhysicalMaterial({ color: '#aeb6c0', metalness: 1, roughness: 0.45, roughnessMap: brosse }),
   inoxSombre: new THREE.MeshPhysicalMaterial({ color: '#7d8794', metalness: 1, roughness: 0.38 }),
   bleu: new THREE.MeshPhysicalMaterial({ color: '#1652c9', metalness: 0, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.18 }),
   bleuTapis: new THREE.MeshPhysicalMaterial({ color: '#1a5fd6', metalness: 0, roughness: 0.42, clearcoat: 0.6 }),
@@ -102,7 +121,7 @@ const VOIES = Array.from({ length: NB }, (_, i) => (i - (NB - 1) / 2) * PAS_Z);
 const X_ELEV_BAS = -11.3, X_ELEV_HAUT = -8.2;
 const X_ALIGN_FIN = -5.6;                       // début des chaînes de godets
 const X_FIN = 9.4;
-const PAS = 0.16;                               // pas des godets
+const PAS = 0.08;                               // pas des godets
 const X_TUNNEL = -2.1, LONG_TUNNEL = 4.6;
 const X_HOTTE = 0.3, LONG_HOTTE = 2.6;
 const STATIONS = Array.from({ length: 10 }, (_, i) => 2.2 + i * 0.72); // ST par côté
@@ -114,6 +133,14 @@ sol.rotation.x = -Math.PI / 2; sol.position.y = -0.001; scene.add(sol);
 const voile = new THREE.Mesh(new THREE.PlaneGeometry(90, 50), new THREE.MeshStandardMaterial({ color: '#070c16', roughness: 0.6, metalness: 0.2, transparent: true, opacity: 0.86 }));
 voile.rotation.x = -Math.PI / 2; voile.position.y = 0.002; voile.receiveShadow = true; scene.add(voile);
 
+{ // tache de lumière au sol (studio)
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  const d = g.createRadialGradient(128, 128, 0, 128, 128, 128); d.addColorStop(0, 'rgba(90,140,255,0.35)'); d.addColorStop(0.6, 'rgba(40,70,140,0.12)'); d.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = d; g.fillRect(0, 0, 256, 256);
+  const t = new THREE.CanvasTexture(c);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(34, 12), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+  m.rotation.x = -Math.PI / 2; m.position.set(-2, 0.004, 0); scene.add(m);
+}
 // ---------- châssis principal et goulottes inox ----------
 const chassis = new THREE.Group(); scene.add(chassis);
 const L = X_FIN - X_ALIGN_FIN;
@@ -160,7 +187,7 @@ boite(LV, 0.16, 0.05, M.inox, XV, 0.8, -0.78); boite(LV, 0.16, 0.05, M.inox, XV,
 // cascade de tomates au vidage
 const cascade = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 12, 9), new THREE.MeshPhysicalMaterial({ color: '#cf2216', roughness: 0.25, clearcoat: 0.8 }), 160);
 cascade.frustumCulled = false; cascade.count = 0; scene.add(cascade);
-const graines = Array.from({ length: 160 }, () => ({ dx: Math.random() * 0.5 - 0.25, dz: Math.random() * 1.0 - 0.5, d: Math.random() * 0.35, r: 0.038 + Math.random() * 0.012, v: 0.3 + Math.random() * 0.5 }));
+const graines = Array.from({ length: 160 }, () => ({ dx: Math.random() * 0.5 - 0.25, dz: Math.random() * 1.0 - 0.5, d: Math.random() * 0.35, r: 0.019 + Math.random() * 0.006, v: 0.3 + Math.random() * 0.5 }));
 // palette de caisses pleines
 const pile = new THREE.Group(); scene.add(pile); pile.position.set(-15.7, 0, -3.3);
 boite(1.2, 0.14, 0.8, new THREE.MeshStandardMaterial({ color: '#2a2f38', roughness: 0.8 }), 0, 0.07, 0, pile, 0.01);
@@ -263,7 +290,7 @@ const barre = boite(0.06, 0.06, LARG + 0.2, M.inox, X_ALIGN_FIN - 0.25, Y + 0.28
 // chaque ligne : une chaîne (maillons blancs) dont chaque axe porte deux diabolos noirs à couronne dentée ;
 // la tomate repose entre deux axes consécutifs et tourne avec les diabolos
 const groupeGodets = new THREE.Group(); scene.add(groupeGodets);
-const PAS_AXE = PAS / 2;
+const PAS_AXE = PAS;
 const diaboloGeo = (() => {
   const prof = [[0.0, -0.026], [0.026, -0.026], [0.028, -0.023], [0.021, -0.009], [0.017, 0.0], [0.021, 0.009], [0.028, 0.023], [0.026, 0.026], [0.0, 0.026]]
     .map(([r, y]) => new THREE.Vector2(r, y));
@@ -291,16 +318,19 @@ for (const z of VOIES) boite(L, 0.02, 0.05, M.inoxSombre, xm, Y - 0.025, z, grou
 // ---------- 5. coffret électrique, cellule de vision, cellule SWIR (dans cet ordre) ----------
 // d'après les photos de la ligne : capot de vision hexagonal qui déborde de la chaîne, tiroir étroit en bas
 // (deux poignées), raccord en « V » entre les deux ; cellule SWIR rectangulaire juste après ; coffret à côté de l'entrée
-const LONG_VISION = 3.6, H_VISION = 1.85, X_VISION = -4.2 + LONG_VISION / 2;
-const LONG_SPECTRAL = 1.6, X_SPECTRAL = -0.5 + LONG_SPECTRAL / 2;
+// le profil hexagonal est dans le plan du défilement ; le capot est extrudé en travers de la ligne
+const H_VISION = 1.85, LONG_VISION = 2.1, X_VISION = -4.2 + LONG_VISION / 2;
+const LONG_SPECTRAL = 1.5, X_SPECTRAL = X_VISION + LONG_VISION / 2 + 0.2 + LONG_SPECTRAL / 2;
 const vision = new THREE.Group(); scene.add(vision); vision.position.x = X_VISION;
 const logoTex = new THREE.TextureLoader().load('media/logo-freescan.png'); logoTex.colorSpace = THREE.SRGBColorSpace;
 const yV = Y + 0.08;
+// repère local du capot (tourné de 90°) : z local = le long de la ligne, x local = en travers
 const PV = {
-  zb: LARG / 2 + 0.03, zm: LARG / 2 + 0.26, zt: 0.58 * (LARG / 2 + 0.26),
+  zb: 0.9, zm: LONG_VISION / 2, zt: 0.58 * LONG_VISION / 2,
   h1: 0.3 * H_VISION, h2: 0.38 * H_VISION, h3: 0.72 * H_VISION, h: H_VISION,
-  lt: LONG_VISION / 2, lb: LONG_VISION / 2 - 0.05,
+  lt: LARG / 2 + 0.25, lb: LARG / 2 + 0.2,
 };
+vision.rotation.y = Math.PI / 2;
 function demiLong(y) { return y >= PV.h1 ? PV.lt : PV.lb; }
 function geoCaisson() {
   // contour (z, y) : tiroir vertical étroit, « V » qui s'évase, flanc vertical, chanfrein, dessus plat
@@ -338,20 +368,19 @@ function geoCaisson() {
   // logo sur la face d'entrée et sur les flancs
   const logoBout = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 0.45), new THREE.MeshStandardMaterial({ map: logoTex, transparent: true, roughness: 0.5 }));
   logoBout.position.set(-PV.lt - 0.012, yV + (PV.h2 + PV.h3) / 2 + 0.12, 0); logoBout.rotation.y = -Math.PI / 2; vision.add(logoBout);
+  const logoBout2 = logoBout.clone(); logoBout2.position.x = PV.lt + 0.012; logoBout2.rotation.y = Math.PI / 2; vision.add(logoBout2);
   for (const s2 of [-1, 1]) {
     for (const x of [-PV.lt / 2, PV.lt / 2]) {
       boite(PV.lt - 0.12, PV.h3 - PV.h2 - 0.1, 0.008, M.inoxBrosse, x, yV + (PV.h2 + PV.h3) / 2, s2 * (PV.zm + 0.005), vision, 0.004);
       for (const dx of [-0.38, 0.38]) { const gr = boite(0.2, 0.04, 0.035, M.noir, x + dx, yV + PV.h2 + 0.18, s2 * (PV.zm + 0.025), vision, 0.012); gr.rotation.z = 0.7 * Math.sign(dx); }
     }
-    const logo = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.32), new THREE.MeshStandardMaterial({ map: logoTex, transparent: true, roughness: 0.5, metalness: 0.2 }));
-    logo.position.set(-PV.lt / 2, yV + PV.h3 - 0.3, s2 * (PV.zm + 0.012)); logo.rotation.y = s2 > 0 ? 0 : Math.PI; vision.add(logo);
   }
-  const fente = boite(2 * PV.lb - 0.2, 0.01, LARG - 0.2, M.led, 0, yV - 0.004, 0, vision, 0.004); fente.castShadow = false;
+  const fente = boite(LARG - 0.2, 0.01, 2 * PV.zb - 0.3, M.led, 0, yV - 0.004, 0, vision, 0.004); fente.castShadow = false;
 }
 // cellule SWIR : caisson rectangulaire, porte, petit écran, arrêt d'urgence
 const spectral = new THREE.Group(); scene.add(spectral); spectral.position.x = X_SPECTRAL;
 {
-  const y0 = Y + 0.08, h = 0.86 * H_VISION, w = 2 * PV.zb + 0.25;
+  const y0 = Y + 0.08, h = 0.86 * H_VISION, w = LARG + 0.4;
   boite(LONG_SPECTRAL, h, w, M.inoxBrosse, 0, y0 + h / 2, 0, spectral, 0.03);
   for (const s2 of [-1, 1]) {
     boite(LONG_SPECTRAL * 0.55, h - 0.2, 0.012, M.inox, -LONG_SPECTRAL * 0.18, y0 + h / 2, s2 * (w / 2 + 0.006), spectral, 0.006);
@@ -376,7 +405,7 @@ const spectral = new THREE.Group(); scene.add(spectral); spectral.position.x = X
 const lumTunnel = new THREE.PointLight('#dfeeff', 1.2, 2.5, 2); lumTunnel.position.set(0, Y + 0.2, 0); vision.add(lumTunnel);
 // coffret électrique : colonne inox à côté de l'entrée de la cellule, face vers l'amont
 const pupitre = new THREE.Group(); scene.add(pupitre);
-pupitre.position.set(X_VISION - LONG_VISION / 2 - 0.05, 0, -(PV.zm + 0.5));
+pupitre.position.set(X_VISION - LONG_VISION / 2 - 0.05, 0, -(PV.lt + 0.5));
 {
   const H = 2.75, Wz = 0.85, Dx = 0.7;
   boite(Dx, H, Wz, M.inoxBrosse, 0, H / 2, 0, pupitre, 0.03);
@@ -443,7 +472,7 @@ for (const cote of [-1, 1]) {
 
 // ---------- tomates cerises ----------
 const COULEURS = ['#c8150f', '#dd2a14', '#ee5a1c', '#f08a2a', '#9aa83a'];   // de très mûre à tournante
-const MAX = 2800;
+const MAX = 5200;
 const fruitMat = new THREE.MeshPhysicalMaterial({ roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.25 });
 const fruits = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 22, 16), fruitMat, MAX);
 fruits.frustumCulled = false; fruits.castShadow = true; fruits.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -451,7 +480,7 @@ scene.add(fruits);
 const pedoncule = new THREE.InstancedMesh(new THREE.ConeGeometry(0.35, 0.25, 5), new THREE.MeshStandardMaterial({ color: '#3f7a2a', roughness: 0.6 }), MAX);
 pedoncule.frustumCulled = false; scene.add(pedoncule);
 const pool = [];
-const R_FRUIT = 0.04;
+const R_FRUIT = 0.02;
 
 // ---------- simulation ----------
 const VITESSE = 0.6;
@@ -491,15 +520,15 @@ function majFruits(dt, t) {
       const x = xSlot(p.n);
       if (x < X_ELEV_HAUT) {                    // sur l'élévateur, en vrac
         const k = (x - X_ELEV_BAS) / (X_ELEV_HAUT - X_ELEV_BAS);
-        p3.set(x, 0.75 + k * (Y - 0.75) + 0.05, p.z0 * 1.05);
+        p3.set(x, 0.75 + k * (Y - 0.75) + 0.025, p.z0 * 1.05);
         placer(i, p, p3, p.ph, 0, -t * 2);
       } else if (x < X_ALIGN_FIN) {             // aligneur : rabattu vers sa ligne
         const k = THREE.MathUtils.smootherstep(x, X_ELEV_HAUT, X_ALIGN_FIN - 0.3);
-        p3.set(x + Math.sin(t * 7 + p.ph) * 0.015 * (1 - k), Y + 0.045, THREE.MathUtils.lerp(p.z0, zV, k));
-        placer(i, p, p3, 0, (1 - k) * p.ph, -(x / 0.045) * 0.5);
+        p3.set(x + Math.sin(t * 7 + p.ph) * 0.01 * (1 - k), Y + 0.022, THREE.MathUtils.lerp(p.z0, zV, k));
+        placer(i, p, p3, 0, (1 - k) * p.ph, -(x / 0.022) * 0.5);
       } else {                                  // dans son godet, il tourne sur les rouleaux
-        p3.set(x, Y + 0.058, zV);
-        placer(i, p, p3, 0, 0, -(x / 0.045) * 0.7 + p.ph);   // couchée entre deux axes, tourne sur son grand axe
+        p3.set(x, Y + 0.046, zV);
+        placer(i, p, p3, 0, 0, -(x / 0.022) * 0.8 + p.ph);   // couchée entre deux axes, tourne sur son grand axe
         const xs = p.st >= 0 ? STATIONS[p.st] : X_FIN + 0.2;
         if (x >= xs) {
           if (p.st >= 0) { p.etat = 'chute'; souffler(xs, zV); }
@@ -515,7 +544,7 @@ function majFruits(dt, t) {
       if (k >= 1) { p.etat = 'tapis'; p.t = 0; p.x0 = p.de.x + (Math.random() - 0.5) * 0.3; }
     } else if (p.etat === 'tapis') {           // tapis transversal vers la caisse
       p.t += dt; const z = p.cote * (LARG / 2 + 0.05 + p.t * 0.75);
-      p3.set(p.x0, Y - 0.58 + 0.045 - (Math.abs(z) - LARG / 2) * 0.1, z);
+      p3.set(p.x0, Y - 0.58 + 0.022 - (Math.abs(z) - LARG / 2) * 0.1, z);
       placer(i, p, p3, 0, 0, p.t * 9 * p.cote);
       if (Math.abs(z) > LARG / 2 + 0.9) { p.etat = 'tombe'; p.t = 0; p.de = p3.clone(); const b = bacs[(p.cote > 0 ? 10 : 0) + p.st]; p.vers = new THREE.Vector3(b.x + (Math.random() - 0.5) * 0.4, 0.38 + Math.random() * 0.14, b.zC + (Math.random() - 0.5) * 0.24); }
     } else if (p.etat === 'tombe') {
@@ -539,7 +568,7 @@ function majFruits(dt, t) {
 }
 
 function majGodets() {
-  let a = 0; const dec = ((distance % PAS_AXE) + PAS_AXE) % PAS_AXE;
+  let a = 0; const dec = (((X_ELEV_BAS + distance + PAS_AXE / 2 - X_ALIGN_FIN) % PAS_AXE) + PAS_AXE) % PAS_AXE;
   const qa = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -distance / 0.018);
   const qr = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI);
   e3.set(1, 1, 1);
@@ -580,10 +609,10 @@ const ETAPES = [
   { pos: [-17.6, 4.2, 3.0], vise: [-13.6, 1.1, -1.2], ancre: [-12.9, 2.0, 0.6] },
   { pos: [-9.2, 2.4, 3.6], vise: [-9.8, 1.0, 0], ancre: [-9.6, 1.05, 0.5] },
   { pos: [-6.4, 2.4, 2.2], vise: [-7.0, 1.15, 0], ancre: [-6.7, 1.32, 0.2] },
-  { pos: [-4.55, 1.85, 0.9], vise: [-5.3, 1.2, 0.0], ancre: [-5.0, 1.26, 0.17] },
+  { pos: [-4.75, 1.62, 0.55], vise: [-5.35, 1.22, 0.0], ancre: [-5.05, 1.25, 0.09] },
   { pos: [-7.6, 2.1, -3.2], vise: [-4.6, 1.7, -1.3], ancre: [-4.62, 1.5, -1.32] },
-  { pos: [2.0, 2.9, 5.2], vise: [-2.4, 1.9, 0], ancre: [-2.6, 2.6, 1.07] },
-  { pos: [2.9, 2.2, 3.4], vise: [0.3, 1.8, 0], ancre: [0.55, 2.35, 1.0] },
+  { pos: [-2.0, 2.5, 5.0], vise: [-3.15, 2.0, 0.4], ancre: [-3.15, 2.75, 1.08] },
+  { pos: [2.6, 2.3, 3.6], vise: [-0.1, 1.8, 0], ancre: [0.2, 2.35, 1.03] },
   { pos: [3.0, 1.5, 2.3], vise: [2.3, 0.95, 0.6], ancre: [2.25, 0.75, 1.05] },
   { pos: [8.6, 2.8, 5.0], vise: [5.8, 0.5, 1.4], ancre: [5.8, 0.62, 2.0] },
 ];
@@ -618,15 +647,24 @@ function majEtiquette() {
 }
 
 // ---------- post-traitement ----------
-const composer = new EffectComposer(renderer);
+const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { samples: leger ? 0 : 4, type: THREE.HalfFloatType }));
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(512, 512), leger ? 0.12 : 0.18, 0.3, 0.985);
+let ao = null;
+if (!leger) {
+  try {
+    ao = new GTAOPass(scene, camera, 1, 1);
+    ao.updateGtaoMaterial({ radius: 0.35, distanceExponent: 1.5, thickness: 1.2, scale: 1.1, samples: 12 });
+    ao.blendIntensity = 0.85;
+    composer.addPass(ao);
+  } catch (e) { ao = null; }
+}
+const bloom = new UnrealBloomPass(new THREE.Vector2(512, 512), leger ? 0.1 : 0.14, 0.35, 0.99);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
 function dimensionner() {
   const w = canvas.clientWidth, h = canvas.clientHeight;
-  renderer.setSize(w, h, false); composer.setSize(w, h);
+  renderer.setSize(w, h, false); composer.setSize(w, h); if (ao) ao.setSize(w * renderer.getPixelRatio(), h * renderer.getPixelRatio());
   camera.aspect = w / h; camera.fov = w < h ? 52 : 36; camera.updateProjectionMatrix();
 }
 new ResizeObserver(dimensionner).observe(canvas); dimensionner();
