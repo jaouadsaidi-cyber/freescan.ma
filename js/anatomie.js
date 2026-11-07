@@ -403,14 +403,14 @@ function creer(n, v) {
   // classe -> stations de ce côté (2 à 3 stations par classe), quelques retours en bout de ligne
   let st = Math.min(9, classe * 2 + (Math.random() < 0.5 ? 0 : 1) + (classe === 4 ? 1 : 0));
   if (Math.random() < 0.03) st = -1;
-  Object.assign(p, { etat: 'ligne', n, v, z0: (Math.random() - 0.5) * 1.3, classe, cote, st, t: 0, ph: Math.random() * 6.3, k: 0.85 + Math.random() * 0.3, el: 1.12 + Math.random() * 0.2 });
+  Object.assign(p, { etat: 'ligne', n, v, z0: (Math.random() - 0.5) * 1.3, classe, cote, st, t: 0, ph: Math.random() * 6.3, k: 0.8 + Math.random() * 0.25, el: 1.3 + Math.random() * 0.25 });
 }
 function placer(i, p, pos, rx, ry, rz) {
   const r = R_FRUIT * p.k;
-  eul.set(rx, ry, rz); q.setFromEuler(eul); e3.set(r * p.el, r, r);
+  eul.set(rx, ry, rz); q.setFromEuler(eul); e3.set(r, r, r * p.el);   // grand axe selon Z (parallèle aux axes des diabolos)
   m4.compose(pos, q, e3); fruits.setMatrixAt(i, m4);
-  off.set(r * p.el * 0.95, 0, 0).applyQuaternion(q).add(pos);
-  e3.set(r * 0.6, r * 0.6, r * 0.6); m4.compose(off, q.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI / 2)), e3); pedoncule.setMatrixAt(i, m4);
+  off.set(0, 0, r * p.el * 0.95).applyQuaternion(q).add(pos);
+  e3.set(r * 0.6, r * 0.6, r * 0.6); m4.compose(off, q.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2)), e3); pedoncule.setMatrixAt(i, m4);
   col.set(COULEURS[p.classe]); fruits.setColorAt(i, col);
 }
 
@@ -430,10 +430,10 @@ function majFruits(dt, t) {
       } else if (x < X_ALIGN_FIN) {             // aligneur : rabattu vers sa ligne
         const k = THREE.MathUtils.smootherstep(x, X_ELEV_HAUT, X_ALIGN_FIN - 0.3);
         p3.set(x + Math.sin(t * 7 + p.ph) * 0.015 * (1 - k), Y + 0.045, THREE.MathUtils.lerp(p.z0, zV, k));
-        placer(i, p, p3, p.ph, 0, -(x / 0.045) * 0.5);
+        placer(i, p, p3, 0, (1 - k) * p.ph, -(x / 0.045) * 0.5);
       } else {                                  // dans son godet, il tourne sur les rouleaux
         p3.set(x, Y + 0.068, zV);
-        placer(i, p, p3, -(x / 0.045) * 0.7 + p.ph, 0, 0);
+        placer(i, p, p3, 0, 0, -(x / 0.045) * 0.7 + p.ph);   // couchée entre deux axes, tourne sur son grand axe
         const xs = p.st >= 0 ? STATIONS[p.st] : X_FIN + 0.2;
         if (x >= xs) {
           if (p.st >= 0) { p.etat = 'chute'; souffler(xs, zV); }
