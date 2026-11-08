@@ -621,6 +621,10 @@ footer a:hover{color:var(--texte)}
   var section=document.getElementById('fruits'),car=document.getElementById('carrousel');
   var diapos=[].slice.call(car.querySelectorAll('.diapo')),puces=[].slice.call(car.querySelectorAll('.puce'));
   var courant=0,DUREE=8000,debut=0,ecoule=0,pause=false,visible=false,raf;
+  // photos en chargement différé : le navigateur ne charge pas une diapo hors champ (rognée), elle arriverait noire.
+  // On les charge toutes dès que le carrousel approche de l'écran.
+  var imgs=diapos.map(function(d){return d.querySelector('.media img')});
+  new IntersectionObserver(function(es,o){if(es[0].isIntersecting){imgs.forEach(function(im){im.loading='eager'});o.disconnect()}},{rootMargin:'800px 0px'}).observe(car);
   // sens > 0 : le nouveau fruit arrive par la droite, l'ancien part à gauche ; sens < 0 : l'inverse
   function montrer(i,sens){
     var n=diapos.length,j=(i+n)%n,anc=diapos[courant],d=diapos[j];
@@ -640,7 +644,7 @@ footer a:hover{color:var(--texte)}
   function boucle(t){
     if(!pause&&visible){ecoule+=t-debut;
       puces[courant].querySelector('i').style.width=Math.min(100,ecoule/DUREE*100)+'%';
-      if(ecoule>=DUREE)montrer(courant+1,1);}
+      if(ecoule>=DUREE&&imgs[(courant+1)%diapos.length].complete)montrer(courant+1,1);}   // attendre que la photo suivante soit là
     debut=t;raf=requestAnimationFrame(boucle);
   }
   puces.forEach(function(p,i){p.addEventListener('click',function(){montrer(i)})});
