@@ -101,23 +101,28 @@ h1,h2,h3{font-family:var(--titre);font-weight:600;letter-spacing:-.02em;line-hei
 
 .fruits{position:relative;transition:background 1s}
 .fruits .tete{display:flex;justify-content:space-between;align-items:end;gap:30px;flex-wrap:wrap;margin-bottom:46px}
-.carrousel{position:relative}
-.diapos{position:relative;height:clamp(460px,48vw,560px);overflow-x:clip}
-.diapo{position:absolute;inset:0;display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(24px,4vw,60px);align-items:center;opacity:0;visibility:hidden;transform:translateX(calc(100% + 80px));transition:transform .9s cubic-bezier(.65,0,.35,1),opacity .9s,visibility .9s}
-.diapo.avant{transform:translateX(calc(-100% - 80px))}
-.diapo.active{opacity:1;visibility:visible;transform:none}
-.diapo.sans-transition{transition:none!important}
-.diapo .media{position:relative;height:100%;border-radius:calc(var(--r) + 8px);overflow:hidden;background:#000;box-shadow:0 40px 120px -30px var(--teinte)}
-.diapo .media img{width:100%;height:100%;object-fit:cover;transform:scale(1.14);transition:transform 9s ease-out}
-.diapo.active .media img{transform:scale(1)}
-.diapo .media .etiquette{position:absolute;left:18px;bottom:18px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.45);backdrop-filter:blur(8px);font-size:13px;border:1px solid rgba(255,255,255,.15)}
-.diapo .num{font:500 14px var(--titre);color:var(--teinte);letter-spacing:.1em}
-.diapo h3{font-size:clamp(40px,6vw,84px);margin:10px 0 18px}
-.diapo h3 .point{color:var(--teinte)}
-.diapo .texte p{color:var(--doux);font-size:18px;max-width:44ch;margin-bottom:26px}
-.diapo .texte > *{transform:translateY(24px);opacity:0;transition:transform .9s cubic-bezier(.2,.8,.2,1),opacity .9s}
-.diapo.active .texte > *{transform:none;opacity:1}
-.diapo.active .texte > :nth-child(2){transition-delay:.08s}.diapo.active .texte > :nth-child(3){transition-delay:.16s}.diapo.active .texte > :nth-child(4){transition-delay:.24s}.diapo.active .texte > :nth-child(5){transition-delay:.32s}
+.carrousel{position:relative;--W:clamp(200px,30vw,380px);--R:calc(var(--W) * 1.15)}
+/* carrousel 3D, cinq cartes sur un anneau vu légèrement de dessus. Pour chaque carte, --a est sa place sur l'anneau (degrés,
+   0 = devant) ; --y, son orientation propre (elle reste tournée vers le spectateur, un peu de biais sur les côtés) ;
+   --f, 1 devant et 0 au fond, assombrit les cartes qui s'éloignent */
+.manege{position:relative;height:calc(var(--W) * 1.3);perspective:calc(var(--W) * 3.6);perspective-origin:50% 25%;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none;overflow:hidden}
+.manege.tire{cursor:grabbing}
+.anneau{position:absolute;inset:0;transform-style:preserve-3d;transform:translateZ(calc(var(--R) * -1)) rotateX(-8deg)}
+.carte{position:absolute;left:50%;top:46%;width:var(--W);height:calc(var(--W) * .75);margin:calc(var(--W) * -.375) 0 0 calc(var(--W) * -.5);transform-style:preserve-3d;transform:rotateY(calc(var(--a,0) * 1deg)) translateZ(var(--R)) rotateY(calc((var(--y,0) - var(--a,0)) * 1deg))}
+.carte .recto,.carte .verso{position:absolute;inset:0;border-radius:18px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.carte .recto{background:#000;border:1px solid rgba(255,255,255,.14);box-shadow:0 30px 80px -34px var(--teinte);-webkit-box-reflect:below 14px linear-gradient(transparent 64%,rgba(255,255,255,.14))}
+.carte .recto img{width:100%;height:100%;object-fit:cover;pointer-events:none;-webkit-user-drag:none}
+.carte .voile{position:absolute;inset:0;background:#05070d;opacity:calc((1 - var(--f,1)) * .72);pointer-events:none}
+.carte .etiquette{position:absolute;left:14px;bottom:14px;padding:7px 13px;border-radius:999px;background:rgba(0,0,0,.45);backdrop-filter:blur(8px);font-size:13px;border:1px solid rgba(255,255,255,.15);opacity:clamp(0,(var(--f,1) - .82) * 5.6,1)}
+.carte .verso{transform:rotateY(180deg);background:radial-gradient(80% 70% at 50% 40%,color-mix(in srgb,var(--teinte) 30%,#0b0f18),#06080e 75%);border:1px solid rgba(255,255,255,.07)}
+.manege .sol{position:absolute;left:10%;right:10%;bottom:0;height:46%;background:radial-gradient(50% 45% at 50% 55%,color-mix(in srgb,var(--teinte,#3b82f6) 26%,transparent),transparent 75%);pointer-events:none}
+.legendes{display:grid;text-align:center;margin-top:6px}
+.legende{grid-area:1/1;opacity:0;visibility:hidden;transform:translateY(18px);transition:opacity .7s,transform .7s cubic-bezier(.2,.8,.2,1),visibility .7s}
+.legende.active{opacity:1;visibility:visible;transform:none}
+.legende .num{font:500 14px var(--titre);color:var(--teinte);letter-spacing:.1em}
+.legende h3{font-size:clamp(36px,4.6vw,64px);margin:8px 0 12px}
+.legende h3 .point{color:var(--teinte)}
+.legende p{color:var(--doux);font-size:18px;max-width:46ch;margin-inline:auto}
 .criteres{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}
 .critere{padding:14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--trait)}
 .critere b{display:block;font:600 15px var(--titre);color:var(--texte)}
@@ -135,9 +140,8 @@ h1,h2,h3{font-family:var(--titre);font-weight:600;letter-spacing:-.02em;line-hei
 .fleche svg{width:20px;height:20px}
 .fleche .lecture{display:none}.fleche[aria-pressed="true"] .lecture{display:block}.fleche[aria-pressed="true"] .pause{display:none}
 @media (max-width:900px){
-  .diapos{height:auto;display:grid}
-  .diapo{position:relative;inset:auto;grid-area:1/1;grid-template-columns:1fr}
-  .diapo .media{height:62vw;min-height:240px}
+  .carrousel{--W:min(56vw,340px);--R:calc(var(--W) * 1.05)}
+  .manege{margin-inline:-16px}
   .criteres{grid-template-columns:1fr 1fr 1fr}
   .puce{font-size:0;padding-top:6px}
 }
@@ -292,7 +296,7 @@ footer a:hover{color:var(--texte)}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
   .apparait{opacity:1;transform:none}
-  .diapo{transition:transform .9s cubic-bezier(.65,0,.35,1),opacity .9s,visibility .9s!important}
+  .legende{transition:opacity .7s,transform .7s,visibility .7s!important}
 }
 </style>
 </head>
@@ -358,53 +362,43 @@ footer a:hover{color:var(--texte)}
     </div>
 
     <div class="carrousel" id="carrousel" aria-roledescription="carrousel">
-      <div class="diapos">
+      <div class="manege">
+        <div class="sol"></div>
+        <div class="anneau">
+          <article class="carte" style="--i:0;--teinte:#ff3b3b" data-fond="#140708"><div class="recto"><img src="media/cgi/f-tomate-cerise.jpg" alt="" loading="lazy"><i class="voile"></i><span class="etiquette">Tomate cerise</span></div><div class="verso"></div></article>
+          <article class="carte" style="--i:1;--teinte:#ff5a3c" data-fond="#150a07"><div class="recto"><img src="media/cgi/f-tomate.jpg" alt="" loading="lazy"><i class="voile"></i><span class="etiquette">Tomate</span></div><div class="verso"></div></article>
+          <article class="carte" style="--i:2;--teinte:#ff9f1a" data-fond="#150d04"><div class="recto"><img src="media/cgi/f-orange.jpg?v=2" alt="" loading="lazy"><i class="voile"></i><span class="etiquette">Orange et agrumes</span></div><div class="verso"></div></article>
+          <article class="carte" style="--i:3;--teinte:#c8782e" data-fond="#120a05"><div class="recto"><img src="media/cgi/f-datte.jpg" alt="" loading="lazy"><i class="voile"></i><span class="etiquette">Datte</span></div><div class="verso"></div></article>
+          <article class="carte" style="--i:4;--teinte:#7b6cff" data-fond="#0a0a18"><div class="recto"><img src="media/cgi/f-myrtille.jpg" alt="" loading="lazy"><i class="voile"></i><span class="etiquette">Myrtille</span></div><div class="verso"></div></article>
+        </div>
+      </div>
 
-        <article class="diapo active" style="--teinte:#ff3b3b" data-fond="#140708">
-          <div class="media"><img src="media/cgi/f-tomate-cerise.jpg" alt="" loading="lazy"><span class="etiquette">Tomate cerise</span></div>
-          <div class="texte">
-            <span class="num">01 / 05</span>
-            <h3>Tomate cerise<span class="point">.</span></h3>
-            <p>Un tri précis et régulier, à pleine cadence, qui respecte le fruit.</p>
-          </div>
-        </article>
-
-        <article class="diapo" style="--teinte:#ff5a3c" data-fond="#150a07">
-          <div class="media"><img src="media/cgi/f-tomate.jpg" alt="" loading="lazy"><span class="etiquette">Tomate</span></div>
-          <div class="texte">
-            <span class="num">02 / 05</span>
-            <h3>Tomate<span class="point">.</span></h3>
-            <p>Des lots homogènes, caisse après caisse.</p>
-          </div>
-        </article>
-
-        <article class="diapo" style="--teinte:#ff9f1a" data-fond="#150d04">
-          <div class="media"><img src="media/cgi/f-orange.jpg?v=2" alt="" loading="lazy"><span class="etiquette">Orange et agrumes</span></div>
-          <div class="texte">
-            <span class="num">03 / 05</span>
-            <h3>Orange<span class="point">.</span></h3>
-            <p>Une qualité constante, prête pour les marchés les plus exigeants.</p>
-          </div>
-        </article>
-
-        <article class="diapo" style="--teinte:#c8782e" data-fond="#120a05">
-          <div class="media"><img src="media/cgi/f-datte.jpg" alt="" loading="lazy"><span class="etiquette">Datte</span></div>
-          <div class="texte">
-            <span class="num">04 / 05</span>
-            <h3>Datte<span class="point">.</span></h3>
-            <p>Une qualité mesurée, au-delà de l'apparence.</p>
-          </div>
-        </article>
-
-        <article class="diapo" style="--teinte:#7b6cff" data-fond="#0a0a18">
-          <div class="media"><img src="media/cgi/f-myrtille.jpg" alt="" loading="lazy"><span class="etiquette">Myrtille</span></div>
-          <div class="texte">
-            <span class="num">05 / 05</span>
-            <h3>Myrtille<span class="point">.</span></h3>
-            <p>Une attention à chaque baie, une manipulation tout en douceur.</p>
-          </div>
-        </article>
-
+      <div class="legendes">
+        <div class="legende active" style="--teinte:#ff3b3b">
+          <span class="num">01 / 05</span>
+          <h3>Tomate cerise<span class="point">.</span></h3>
+          <p>Un tri précis et régulier, à pleine cadence, qui respecte le fruit.</p>
+        </div>
+        <div class="legende" style="--teinte:#ff5a3c">
+          <span class="num">02 / 05</span>
+          <h3>Tomate<span class="point">.</span></h3>
+          <p>Des lots homogènes, caisse après caisse.</p>
+        </div>
+        <div class="legende" style="--teinte:#ff9f1a">
+          <span class="num">03 / 05</span>
+          <h3>Orange<span class="point">.</span></h3>
+          <p>Une qualité constante, prête pour les marchés les plus exigeants.</p>
+        </div>
+        <div class="legende" style="--teinte:#c8782e">
+          <span class="num">04 / 05</span>
+          <h3>Datte<span class="point">.</span></h3>
+          <p>Une qualité mesurée, au-delà de l'apparence.</p>
+        </div>
+        <div class="legende" style="--teinte:#7b6cff">
+          <span class="num">05 / 05</span>
+          <h3>Myrtille<span class="point">.</span></h3>
+          <p>Une attention à chaque baie, une manipulation tout en douceur.</p>
+        </div>
       </div>
 
       <div class="commandes">
@@ -617,46 +611,65 @@ footer a:hover{color:var(--texte)}
   })},{threshold:.6});
   document.querySelectorAll('[data-compte]').forEach(function(b){ioc.observe(b)});
 
-  // carrousel
+  // carrousel 3D : l'anneau tourne de 72° par fruit ; rot < 0 amène le fruit suivant (celui de droite) devant
   var section=document.getElementById('fruits'),car=document.getElementById('carrousel');
-  var diapos=[].slice.call(car.querySelectorAll('.diapo')),puces=[].slice.call(car.querySelectorAll('.puce'));
-  var courant=0,DUREE=8000,debut=0,ecoule=0,pause=false,visible=false,raf;
-  // photos en chargement différé : le navigateur ne charge pas une diapo hors champ (rognée), elle arriverait noire.
-  // On les charge toutes dès que le carrousel approche de l'écran.
-  var imgs=diapos.map(function(d){return d.querySelector('.media img')});
+  var manege=car.querySelector('.manege');
+  var cartes=[].slice.call(car.querySelectorAll('.carte')),legendes=[].slice.call(car.querySelectorAll('.legende')),puces=[].slice.call(car.querySelectorAll('.puce'));
+  var N=cartes.length,PAS=360/N,DUREE=5000,TOUR=1200;
+  var rot=0,dep=0,arr=0,t0=-1,courant=0,ecoule=0,debut=0,pause=false,visible=false,tire=null;
+  // photos en chargement différé : on les charge toutes dès que le carrousel approche de l'écran,
+  // sinon une carte encore de dos arriverait noire
+  var imgs=cartes.map(function(c){return c.querySelector('img')});
   new IntersectionObserver(function(es,o){if(es[0].isIntersecting){imgs.forEach(function(im){im.loading='eager'});o.disconnect()}},{rootMargin:'800px 0px'}).observe(car);
-  // sens > 0 : le nouveau fruit arrive par la droite, l'ancien part à gauche ; sens < 0 : l'inverse
-  function montrer(i,sens){
-    var n=diapos.length,j=(i+n)%n,anc=diapos[courant],d=diapos[j];
-    if(!sens)sens=j>=courant?1:-1;
-    if(d!==anc){
-      d.classList.add('sans-transition');d.classList.toggle('avant',sens<0);void d.offsetWidth;d.classList.remove('sans-transition');
-      anc.classList.remove('active');anc.classList.toggle('avant',sens>0);
-      d.classList.remove('avant');
+  function mod(a,n){return ((a%n)+n)%n}
+  function peindre(){
+    cartes.forEach(function(c,i){var a=i*PAS+rot,r=a*Math.PI/180;
+      c.style.setProperty('--a',a.toFixed(3));c.style.setProperty('--y',(28*Math.sin(r)).toFixed(3));c.style.setProperty('--f',((1+Math.cos(r))/2).toFixed(3))});
+  }
+  function activer(j){
+    if(j!==courant){
+      legendes[courant].classList.remove('active');puces[courant].classList.remove('active');cartes[courant].classList.remove('active');
+      puces[courant].querySelector('i').style.width='0';courant=j;
     }
-    puces[courant].classList.remove('active');puces[courant].querySelector('i').style.width='0';
-    courant=j;
-    d.classList.add('active');puces[courant].classList.add('active');
-    section.style.background='radial-gradient(70% 60% at 75% 40%,'+getComputedStyle(d).getPropertyValue('--teinte').trim()+'22,transparent 70%),'+d.dataset.fond;
-    jouer();ecoule=0;debut=performance.now();
+    legendes[j].classList.add('active');puces[j].classList.add('active');cartes[j].classList.add('active');
+    var c=cartes[j],t=c.style.getPropertyValue('--teinte').trim();
+    manege.style.setProperty('--teinte',t);
+    section.style.background='radial-gradient(70% 60% at 30% 45%,'+t+'22,transparent 70%),'+c.dataset.fond;
+    ecoule=0;
   }
-  function jouer(){}
+  // amène la carte k devant ; sens > 0 : par la droite (suivant), < 0 : par la gauche, 0 : le plus court
+  function aller(k,sens){
+    var d=-k*PAS-rot;
+    d=sens>0?-mod(-d,360):sens<0?mod(d,360):mod(d+180,360)-180;
+    dep=rot;arr=rot+d;t0=performance.now();activer(mod(k,N));
+  }
   function boucle(t){
-    if(!pause&&visible){ecoule+=t-debut;
+    if(t0>=0){var p=Math.min(1,(t-t0)/TOUR),e=p<.5?4*p*p*p:1-Math.pow(2-2*p,3)/2;rot=dep+(arr-dep)*e;if(p>=1)t0=-1;peindre()}
+    if(!pause&&visible&&!tire&&t0<0){ecoule+=t-debut;
       puces[courant].querySelector('i').style.width=Math.min(100,ecoule/DUREE*100)+'%';
-      if(ecoule>=DUREE&&imgs[(courant+1)%diapos.length].complete)montrer(courant+1,1);}   // attendre que la photo suivante soit là
-    debut=t;raf=requestAnimationFrame(boucle);
+      if(ecoule>=DUREE&&imgs[mod(courant+1,N)].complete)aller(courant+1,1);}   // attendre que la photo suivante soit là
+    debut=t;requestAnimationFrame(boucle);
   }
-  puces.forEach(function(p,i){p.addEventListener('click',function(){montrer(i)})});
-  document.getElementById('prec').onclick=function(){montrer(courant-1,-1)};
-  document.getElementById('suiv').onclick=function(){montrer(courant+1,1)};
+  // à la souris ou au doigt : l'anneau suit le geste, puis se cale sur le fruit le plus proche ; un clic sur une carte l'amène devant
+  manege.addEventListener('pointerdown',function(e){if(e.button)return;tire={x:e.clientX,rot:rot,bouge:false,id:e.pointerId};t0=-1});
+  manege.addEventListener('pointermove',function(e){
+    if(!tire)return;var dx=e.clientX-tire.x;
+    if(!tire.bouge&&Math.abs(dx)>6){tire.bouge=true;manege.setPointerCapture(tire.id);manege.classList.add('tire')}
+    if(tire.bouge){rot=tire.rot+dx*PAS/(cartes[0].offsetWidth*.9);peindre();activer(mod(Math.round(-rot/PAS),N))}
+  });
+  function lacher(e){
+    if(!tire)return;var b=tire.bouge,c=e.target.closest&&e.target.closest('.carte');tire=null;manege.classList.remove('tire');
+    if(!b&&c&&e.type==='pointerup')aller(cartes.indexOf(c),0);else aller(Math.round(-rot/PAS),0);
+  }
+  manege.addEventListener('pointerup',lacher);manege.addEventListener('pointercancel',lacher);
+  puces.forEach(function(p,i){p.addEventListener('click',function(){aller(i,0)})});
+  document.getElementById('prec').onclick=function(){aller(courant-1,-1)};
+  document.getElementById('suiv').onclick=function(){aller(courant+1,1)};
   var bPause=document.getElementById('pauseCar');
   bPause.onclick=function(){pause=!pause;bPause.setAttribute('aria-pressed',pause?'true':'false')};
-  document.addEventListener('keydown',function(e){if(!visible)return;if(e.key==='ArrowRight')montrer(courant+1,1);if(e.key==='ArrowLeft')montrer(courant-1,-1)});
-  var x0=null;car.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});
-  car.addEventListener('touchend',function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50)montrer(courant+(dx<0?1:-1),dx<0?1:-1);x0=null});
+  document.addEventListener('keydown',function(e){if(!visible)return;if(e.key==='ArrowRight')aller(courant+1,1);if(e.key==='ArrowLeft')aller(courant-1,-1)});
   new IntersectionObserver(function(es){visible=es[0].isIntersecting},{threshold:.25}).observe(car);
-  montrer(0);debut=performance.now();raf=requestAnimationFrame(boucle);
+  peindre();activer(0);debut=performance.now();requestAnimationFrame(boucle);
 
   // film
   var film=document.getElementById('film'),fv=film.querySelector('video');
