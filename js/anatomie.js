@@ -118,8 +118,8 @@ function prisme(longueur, largeur, hauteur, mat, enV = false) {
 const Y = 1.2;                                  // hauteur du fond des godets
 const NB = 8, PAS_Z = 0.17;
 const VOIES = Array.from({ length: NB }, (_, i) => (i - (NB - 1) / 2) * PAS_Z);
-const X_ELEV_BAS = -11.3, X_ELEV_HAUT = -8.2;
-const X_ALIGN_FIN = -5.6;                       // début des chaînes de godets
+const X_ELEV_BAS = -9.0, X_ELEV_HAUT = -5.9;
+const X_ALIGN_FIN = -3.3;                       // début des chaînes de godets, juste avant le coffret électrique
 const X_FIN = 9.4;
 const PAS = 0.08;                               // pas des godets
 const X_TUNNEL = -2.1, LONG_TUNNEL = 4.6;
@@ -170,7 +170,7 @@ function caisse(parent, plein = null, mat = M.caisseRouge) {
 }
 const vracMat = new THREE.MeshPhysicalMaterial({ color: '#c8221b', roughness: 0.45, clearcoat: 0.5 });
 // verseur : deux flasques inox, berceau à deux caisses, axe transversal (Z)
-const X_VERSEUR = -12.9, Y_VERSEUR = 1.15;
+const X_VERSEUR = -10.6, Y_VERSEUR = 1.15;
 const verseur = new THREE.Group(); scene.add(verseur); verseur.position.set(X_VERSEUR, Y_VERSEUR, 0);
 const tambour = new THREE.Group(); verseur.add(tambour);
 const anneauMat = M.inoxBrosse.clone(); anneauMat.side = THREE.DoubleSide;
@@ -195,7 +195,7 @@ const graines = Array.from({ length: 160 }, () => ({ dx: Math.random() * 0.5 - 0
 // palette de caisses pleines
 // palette EUR1 en plastique (1200 × 800, côté long selon Z) : plateau, 9 plots, 3 semelles ;
 // 4 couches de 4 bacs 600 × 400 dans le sens de la longueur ; il manque le bac que le robot vient de prendre
-const pile = new THREE.Group(); scene.add(pile); pile.position.set(-10.0, 0, -2.35);
+const pile = new THREE.Group(); scene.add(pile); pile.position.set(-7.7, 0, -2.35);
 const H_PAL = 0.15, COUCHES = 4, SLOT_PRIS = [-0.2, 0.3];   // bac pris : côté robot, côté ligne
 {
   const plast = new THREE.MeshStandardMaterial({ color: '#34506e', roughness: 0.7 });
@@ -212,7 +212,7 @@ const H_PAL = 0.15, COUCHES = 4, SLOT_PRIS = [-0.2, 0.3];   // bac pris : côté
 // robot 4 axes (palettiseur) : base tournante, bras, avant-bras, poignet qui garde le préhenseur horizontal
 const robot = { base: new THREE.Group(), tourelle: new THREE.Group(), epaule: new THREE.Group(), coude: new THREE.Group(), poignet: new THREE.Group() };
 {
-  const R = robot; groupeRobot.add(R.base); R.base.position.set(-11.35, 0, -2.25);
+  const R = robot; groupeRobot.add(R.base); R.base.position.set(-9.05, 0, -2.25);
   cylindre(0.42, 0.22, M.noir, R.base).position.y = 0.11;
   R.base.add(R.tourelle);
   boite(0.75, 0.55, 0.6, M.robot, 0, 0.5, 0, R.tourelle, 0.08);
@@ -449,12 +449,20 @@ const spectral = new THREE.Group(); scene.add(spectral); spectral.position.x = X
   const fs = boite(0.04, 0.01, LARG - 0.2, new THREE.MeshStandardMaterial({ color: '#b04dff', emissive: '#a040ff', emissiveIntensity: 1.2 }), 0, y0 - 0.004, 0, spectral, 0.003); fs.castShadow = false;
 }
 const lumTunnel = new THREE.PointLight('#dfeeff', 1.2, 2.5, 2); lumTunnel.position.set(0, Y + 0.2, 0); vision.add(lumTunnel);
-// coffret électrique : colonne inox à côté de l'entrée de la cellule, face vers l'amont
+// coffret électrique : armoire inox en portique sur toute la largeur de la cellule, collée à son entrée ;
+// la chaîne passe sous le linteau. Le repère du groupe est la colonne côté opposé aux sorties (écran, commandes).
 const pupitre = new THREE.Group(); scene.add(pupitre);
-pupitre.position.set(X_VISION - PV.zm - 0.5, 0, -1.56);   // juste avant la cellule, côté opposé aux sorties
+const COF_DX = 0.7, COF_PASSAGE = LARG / 2 + 0.15, COF_WZ = PV.lb - COF_PASSAGE, COF_Z = -(COF_PASSAGE + COF_WZ / 2);
+pupitre.position.set(X_VISION - PV.zm - 0.05 - COF_DX / 2, 0, COF_Z);
 {
-  const H = 2.75, Wz = 0.85, Dx = 0.7;
+  const H = 2.75, Wz = COF_WZ, Dx = COF_DX, yL = Y + 0.32, zL = -COF_Z;   // dessous du linteau, axe de la ligne
   boite(Dx, H, Wz, M.inoxBrosse, 0, H / 2, 0, pupitre, 0.03);
+  // linteau au-dessus de la chaîne, et colonne côté sorties, portes sur la face amont
+  boite(Dx, H - yL, 2 * COF_PASSAGE + 0.02, M.inoxBrosse, 0, (H + yL) / 2, zL, pupitre, 0.03);
+  boite(0.02, (H - yL) * 0.8, 2 * COF_PASSAGE - 0.12, M.inox, -Dx / 2 - 0.01, (H + yL) / 2, zL, pupitre, 0.006);
+  boite(Dx, H, Wz, M.inoxBrosse, 0, H / 2, 2 * zL, pupitre, 0.03);
+  boite(0.02, H * 0.36, Wz - 0.1, M.inox, -Dx / 2 - 0.01, H * 0.8, 2 * zL, pupitre, 0.006);
+  boite(0.02, H * 0.58, Wz - 0.1, M.inox, -Dx / 2 - 0.01, H * 0.31, 2 * zL, pupitre, 0.006);
   boite(0.02, H * 0.36, Wz - 0.1, M.inox, -Dx / 2 - 0.01, H * 0.8, 0, pupitre, 0.006);        // porte haute
   boite(0.02, H * 0.58, Wz - 0.1, M.inox, -Dx / 2 - 0.01, H * 0.31, 0, pupitre, 0.006);       // porte basse
   const ecranTex = new THREE.TextureLoader().load(new URL('../media/ui-suivi.jpg?v=2', import.meta.url).href); ecranTex.colorSpace = THREE.SRGBColorSpace;
@@ -652,11 +660,11 @@ function souffler(x, z) {
 // ---------- étapes : caméra et repères ----------
 const ETAPES = [
   { pos: [9.5, 7.5, 12.5], vise: [-1.5, 1.0, 0] },
-  { pos: [-16.2, 4.6, 3.6], vise: [-11.8, 1.1, -1.7], ancre: [-12.9, 2.0, 0.6] },
-  { pos: [-9.2, 2.4, 3.6], vise: [-9.8, 1.0, 0], ancre: [-9.6, 1.05, 0.5] },
-  { pos: [-6.4, 2.4, 2.2], vise: [-7.0, 1.15, 0], ancre: [-6.7, 1.32, 0.2] },
-  { pos: [-4.75, 1.62, 0.55], vise: [-5.35, 1.22, 0.0], ancre: [-5.05, 1.25, 0.09] },
-  { pos: [-6.0, 2.1, -3.3], vise: [-3.0, 1.7, -1.3], ancre: [-3.02, 1.5, -1.32] },
+  { pos: [-13.9, 4.6, 3.6], vise: [-9.5, 1.1, -1.7], ancre: [-10.6, 2.0, 0.6] },
+  { pos: [-6.9, 2.4, 3.6], vise: [-7.5, 1.0, 0], ancre: [-7.3, 1.05, 0.5] },
+  { pos: [-4.1, 2.4, 2.2], vise: [-4.7, 1.15, 0], ancre: [-4.4, 1.32, 0.2] },
+  { pos: [-4.35, 1.8, 1.05], vise: [-3.05, 1.22, 0.0], ancre: [-3.1, 1.25, 0.09] },
+  { pos: [-6.2, 2.3, -3.6], vise: [-2.7, 1.5, -0.6], ancre: [-2.95, 1.5, -1.36] },
   { pos: [-6.4, 2.1, 4.2], vise: [-1.6, 1.75, -0.4], ancre: [-1.45, 3.13, 0.5] },
   { pos: [2.9, 2.2, 3.4], vise: [0.3, 1.8, 0], ancre: [0.55, 2.35, 1.0] },
   { pos: [3.0, 1.5, 2.3], vise: [2.3, 0.95, 0.6], ancre: [2.25, 0.75, 1.05] },
