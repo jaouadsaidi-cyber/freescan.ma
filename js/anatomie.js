@@ -195,7 +195,7 @@ const graines = Array.from({ length: 160 }, () => ({ dx: Math.random() * 0.5 - 0
 // palette de caisses pleines
 // palette EUR1 en plastique (1200 × 800, côté long selon Z) : plateau, 9 plots, 3 semelles ;
 // 4 couches de 4 bacs 600 × 400 dans le sens de la longueur ; il manque le bac que le robot vient de prendre
-const pile = new THREE.Group(); scene.add(pile); pile.position.set(-10.0, 0, -3.35);
+const pile = new THREE.Group(); scene.add(pile); pile.position.set(-10.0, 0, -2.35);
 const H_PAL = 0.15, COUCHES = 4, SLOT_PRIS = [-0.2, 0.3];   // bac pris : côté robot, côté ligne
 {
   const plast = new THREE.MeshStandardMaterial({ color: '#34506e', roughness: 0.7 });
@@ -261,10 +261,27 @@ const caissesAmenee = [caisse(scene, vracMat), caisse(scene, vracMat)];
 for (const c of caissesAmenee) { c.scale.setScalar(0.95); c.visible = false; }
 // prise : le bac manquant de la couche du haut (poignet ≈ 0,79 m au-dessus de l'origine du bac)
 const XP = PIL.x + SLOT_PRIS[0], ZP = PIL.z + SLOT_PRIS[1], YP = H_PAL + (COUCHES - 1) * 0.31 + 0.79;
-const trajet = [ // [x, y, z, porte] : palette -> début du convoyeur d'amenée
-  [-11.3, 2.5, -1.4, 0], [XP, YP + 0.5, ZP, 0], [XP, YP, ZP, 0], [XP, YP, ZP, 1], [XP, YP + 0.7, ZP, 1],
-  [X_VERSEUR, 2.3, Z_POSE, 1], [X_VERSEUR, 1.4, Z_POSE, 1], [X_VERSEUR, 1.4, Z_POSE, 0], [X_VERSEUR + 0.3, 2.2, Z_POSE - 0.2, 0], [-11.3, 2.5, -1.4, 0]];
-const reposRobot = new THREE.Vector3(...trajet[0]);
+// gestes du robot en coordonnées cylindriques autour de sa base : angle de tourelle t, portée r, hauteur y.
+// La tourelle pivote pendant que le bras s'allonge (trajet en arc, comme un vrai palettiseur) ; la hauteur suit
+// une courbe de Bézier : départ vertical, survol, arrivée verticale. Vitesse nulle au début et à la fin de chaque geste.
+const BR = robot.base.position;
+function cyl(x, y, z) { return { t: Math.atan2(-(z - BR.z), x - BR.x), r: Math.hypot(x - BR.x, z - BR.z), y }; }
+const P_PRISE = cyl(XP, YP, ZP), P_POSE = cyl(X_VERSEUR, 1.4, Z_POSE);
+if (P_POSE.t < P_PRISE.t) P_POSE.t += 2 * Math.PI;   // passer par l'arrière, loin de la ligne
+const P_REPOS = { t: (P_PRISE.t + P_POSE.t) / 2, r: 1.25, y: 2.45 };   // attente entre palette et amenée
+const GESTES = [ // [début, fin, départ, arrivée, montée au départ, montée à l'arrivée] en fraction du geste d'une caisse
+  [0.00, 0.25, P_REPOS, P_PRISE, 0.15, 0.55],
+  [0.31, 0.72, P_PRISE, P_POSE, 0.75, 0.85],
+  [0.78, 1.00, P_POSE, P_REPOS, 0.55, 0.15],
+];
+const G_PRISE = 0.28, G_LACHE = 0.78;   // fermeture et ouverture du préhenseur
+function versPoint(P) { return new THREE.Vector3(BR.x + P.r * Math.cos(P.t), P.y, BR.z - P.r * Math.sin(P.t)); }
+function geste(A, B, hA, hB, k) {
+  const h = k * k * (3 - 2 * k);                       // l'arc démarre un peu après la montée
+  const u = 1 - k, y = u * u * u * A.y + 3 * u * u * k * (A.y + hA) + 3 * u * k * k * (B.y + hB) + k * k * k * B.y;
+  return versPoint({ t: A.t + (B.t - A.t) * h, r: A.r + (B.r - A.r) * h, y });
+}
+const reposRobot = versPoint(P_REPOS);
 function caisseBlanche(parent) { return caisse(parent, null, M.caisse); }
 
 // ---------- 2. élévateur à tasseaux ----------
@@ -730,10 +747,10 @@ function avancer(dt) {
   const ph = tRobot / CYCLE;
   const g = ph < 0.3 ? ph / 0.3 : (ph >= 0.38 && ph < 0.68) ? (ph - 0.38) / 0.3 : -1;
   if (g >= 0) {
-    const kr = g * (trajet.length - 1), ir = Math.min(trajet.length - 2, Math.floor(kr)), fr = THREE.MathUtils.smootherstep(kr - ir, 0, 1);
-    const A = trajet[ir], B = trajet[ir + 1];
-    poserRobot(new THREE.Vector3(A[0] + (B[0] - A[0]) * fr, A[1] + (B[1] - A[1]) * fr, A[2] + (B[2] - A[2]) * fr));
-    robot.prise.visible = A[3] === 1;
+    let cible = g < 0.31 ? versPoint(P_PRISE) : g < 0.78 ? versPoint(P_POSE) : reposRobot;   // pauses de préhension
+    for (const [d, f, A, B, hA, hB] of GESTES) if (g >= d && g <= f) cible = geste(A, B, hA, hB, THREE.MathUtils.smootherstep(g, d, f));
+    poserRobot(cible);
+    robot.prise.visible = g >= G_PRISE && g < G_LACHE;
   } else { poserRobot(reposRobot); robot.prise.visible = false; }
   const angA = Math.atan2(YC1 - YC0, ZC1 - ZC0), yPlace = Y_VERSEUR - 0.16;
   for (const [j, d0, d1, zPlace] of [[0, 0.235, 0.4, 0.31], [1, 0.615, 0.76, -0.31]]) {
