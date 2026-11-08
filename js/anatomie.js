@@ -344,11 +344,11 @@ for (const m of [godets, rouleaux]) { m.frustumCulled = false; m.castShadow = tr
 // rails de guidage sous chaque chaîne
 for (const z of VOIES) boite(L, 0.02, 0.05, M.inoxSombre, xm, Y - 0.025, z, groupeGodets, 0.006);
 
-// ---------- 5. coffret électrique, cellule de vision, cellule SWIR (dans cet ordre) ----------
+// ---------- 5. coffret électrique, cellule de vision, cellule spectrale (dans cet ordre) ----------
 // d'après les photos : la cellule est posée en travers de la ligne et déborde largement de la chaîne des deux côtés ;
 // ses faces hexagonales sont sur les côtés de la ligne (plus hautes que larges : dessus étroit, longs chanfreins en toit,
 // côtés droits, bas légèrement rentrant, chevrons dans le sens du défilement) ; les grands flancs, en amont et en aval,
-// portent deux panneaux à grenouillères, le logo, et des poignées sur le chanfrein ; cellule SWIR juste après
+// portent deux panneaux à grenouillères, le logo, et des poignées sur le chanfrein ; cellule spectrale juste après
 const H_VISION = 1.85;
 const LONG_SPECTRAL = 1.6, X_SPECTRAL = -0.5 + LONG_SPECTRAL / 2;
 const vision = new THREE.Group(); scene.add(vision); vision.rotation.y = Math.PI / 2;
@@ -423,7 +423,7 @@ function chevrons(sens) {
   }
   const fente = boite(LARG - 0.2, 0.01, 2 * PV.zb - 0.25, M.led, 0, yV - 0.004, 0, vision, 0.004); fente.castShadow = false;
 }
-// cellule SWIR : caisson rectangulaire, porte, petit écran, arrêt d'urgence
+// cellule spectrale : caisson rectangulaire, porte, petit écran, arrêt d'urgence
 const spectral = new THREE.Group(); scene.add(spectral); spectral.position.x = X_SPECTRAL;
 {
   const y0 = Y + 0.08, h = 0.86 * H_VISION, w = LARG + 0.35;
