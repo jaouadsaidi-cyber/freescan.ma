@@ -425,7 +425,7 @@ pupitre.position.set(X_VISION - PV.zm - 0.5, 0, -1.56);   // juste avant la cell
   boite(Dx, H, Wz, M.inoxBrosse, 0, H / 2, 0, pupitre, 0.03);
   boite(0.02, H * 0.36, Wz - 0.1, M.inox, -Dx / 2 - 0.01, H * 0.8, 0, pupitre, 0.006);        // porte haute
   boite(0.02, H * 0.58, Wz - 0.1, M.inox, -Dx / 2 - 0.01, H * 0.31, 0, pupitre, 0.006);       // porte basse
-  const ecranTex = new THREE.TextureLoader().load(new URL('../media/ui-suivi.jpg', import.meta.url).href); ecranTex.colorSpace = THREE.SRGBColorSpace;
+  const ecranTex = new THREE.TextureLoader().load(new URL('../media/ui-suivi.jpg?v=2', import.meta.url).href); ecranTex.colorSpace = THREE.SRGBColorSpace;
   boite(0.03, 0.46, 0.7, new THREE.MeshStandardMaterial({ color: '#e9ecef', roughness: 0.5 }), -Dx / 2 - 0.03, 1.5, 0, pupitre, 0.01);
   const ecran = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.36), new THREE.MeshBasicMaterial({ map: ecranTex, toneMapped: false }));
   ecran.position.set(-Dx / 2 - 0.047, 1.5, 0); ecran.rotation.y = -Math.PI / 2; pupitre.add(ecran);
