@@ -1,5 +1,5 @@
 // Freescan tomate cerise — la ligne pièce par pièce, en 3D temps réel (three.js).
-// Calquée sur la machine réelle : élévateur à tasseaux, aligneur à diviseurs inox, 8 lignes = 8 chaînes
+// Calquée sur la machine réelle : élévateur à tasseaux, aligneur à trois étages (diviseurs inox), 8 lignes = 8 chaînes
 // de godets bleus (rouleaux de rotation), tunnel de vision, stations ST1–ST10 à tapis transversaux (sortie d'un seul côté), caisses.
 // La caméra suit le défilement de la section #anatomie.
 import * as THREE from 'three';
@@ -93,6 +93,7 @@ const M = {
   led: new THREE.MeshStandardMaterial({ color: '#ffffff', emissive: '#e6f3ff', emissiveIntensity: 1.2 }),
   ledBleue: new THREE.MeshStandardMaterial({ color: '#7db4ff', emissive: '#4f9bff', emissiveIntensity: 2.4 }),
   tube: new THREE.MeshPhysicalMaterial({ color: '#2b8cff', roughness: 0.3, clearcoat: 1, transmission: 0.2 }),
+  inoxPoli: new THREE.MeshPhysicalMaterial({ color: '#e4e9ef', metalness: 1, roughness: 0.34, envMapIntensity: 1.7 }),
 };
 
 function boite(w, h, d, mat, x = 0, y = 0, z = 0, parent = scene, r = null) {
@@ -126,6 +127,27 @@ const X_TUNNEL = -2.1, LONG_TUNNEL = 4.6;
 const X_HOTTE = 0.3, LONG_HOTTE = 2.6;
 const STATIONS = Array.from({ length: 10 }, (_, i) => 2.2 + i * 0.72); // ST par côté
 const LARG = NB * PAS_Z + 0.24;
+// aligneur : trois tapis en cascade, chacun plus rapide que le précédent (vitesses rapportées à celle des chaînes)
+const X_ETAGES = [X_ELEV_HAUT, -5.02, -4.14, X_ALIGN_FIN];
+const Y_ETAGES = [Y + 0.085, Y + 0.068, Y + 0.051];   // dessus de chaque tapis, une marche par étage
+const LG_ETAGES = [0, 1, 2].map(e => X_ETAGES[e + 1] - X_ETAGES[e]);
+const V_ETAGES = [0, 0.68, 0.85];
+// Le retard pris dans l'aligneur doit faire un nombre entier de pas, pour que chaque tomate tombe entre deux axes
+// de sa chaîne : la vitesse du premier étage (≈ 0,5) en découle.
+const RETARD = Math.round((LG_ETAGES[0] / 0.5 + LG_ETAGES[1] / V_ETAGES[1] + LG_ETAGES[2] / V_ETAGES[2] - (X_ALIGN_FIN - X_ELEV_HAUT)) / PAS) * PAS;
+V_ETAGES[0] = LG_ETAGES[0] / (RETARD + (X_ALIGN_FIN - X_ELEV_HAUT) - LG_ETAGES[1] / V_ETAGES[1] - LG_ETAGES[2] / V_ETAGES[2]);
+// abscisse réelle d'une tomate à partir de son abscisse « à vitesse constante »
+function xReel(s) {
+  if (s <= X_ELEV_HAUT) return s;
+  let x = X_ELEV_HAUT, reste = s - X_ELEV_HAUT;
+  for (let e = 0; e < 3; e++) {
+    const lv = LG_ETAGES[e] / V_ETAGES[e];
+    if (reste <= lv) return x + reste * V_ETAGES[e];
+    x += LG_ETAGES[e]; reste -= lv;
+  }
+  return x + reste;
+}
+const Y_HAUT = Y_ETAGES[0] + 0.005;                 // haut de l'élévateur, juste au-dessus du premier étage
 
 // sol miroir atténué
 const sol = new Reflector(new THREE.PlaneGeometry(90, 50), { textureWidth: leger ? 512 : 1024, textureHeight: leger ? 512 : 1024, color: 0x1c2638 });
@@ -286,10 +308,10 @@ function caisseBlanche(parent) { return caisse(parent, null, M.caisse); }
 
 // ---------- 2. élévateur à tasseaux ----------
 const elevateur = new THREE.Group(); scene.add(elevateur);
-const pente = Math.atan2(Y - 0.75, X_ELEV_HAUT - X_ELEV_BAS);
-const longElev = Math.hypot(X_ELEV_HAUT - X_ELEV_BAS, Y - 0.75);
+const pente = Math.atan2(Y_HAUT - 0.75, X_ELEV_HAUT - X_ELEV_BAS);
+const longElev = Math.hypot(X_ELEV_HAUT - X_ELEV_BAS, Y_HAUT - 0.75);
 const cadreElev = new THREE.Group(); elevateur.add(cadreElev);
-cadreElev.position.set((X_ELEV_BAS + X_ELEV_HAUT) / 2, (0.75 + Y) / 2, 0); cadreElev.rotation.z = pente;
+cadreElev.position.set((X_ELEV_BAS + X_ELEV_HAUT) / 2, (0.75 + Y_HAUT) / 2, 0); cadreElev.rotation.z = pente;
 boite(longElev, 0.03, 1.5, M.bleuTapis, 0, -0.02, 0, cadreElev, 0.01);
 boite(longElev + 0.1, 0.22, 0.05, M.inox, 0, 0.05, -0.78, cadreElev);
 boite(longElev + 0.1, 0.22, 0.05, M.inox, 0, 0.05, 0.78, cadreElev);
@@ -299,21 +321,88 @@ tasseaux.frustumCulled = false; tasseaux.castShadow = true; cadreElev.add(tassea
 for (const [x, z] of [[X_ELEV_BAS + 0.4, -0.7], [X_ELEV_BAS + 0.4, 0.7], [X_ELEV_HAUT - 0.2, -0.7], [X_ELEV_HAUT - 0.2, 0.7]]) {
   const h = 0.75 + (x - X_ELEV_BAS) * Math.tan(pente); boite(0.07, h, 0.07, M.inox, x, h / 2, z, elevateur);
 }
-const moteur = cylindre(0.14, 0.3, M.inoxBrosse, elevateur); moteur.rotation.x = Math.PI / 2; moteur.position.set(X_ELEV_HAUT, Y - 0.1, 0.95);
+const moteur = cylindre(0.14, 0.3, M.inoxBrosse, elevateur); moteur.rotation.x = Math.PI / 2; moteur.position.set(X_ELEV_HAUT, Y_HAUT - 0.1, 0.95);
 
-// ---------- 3. aligneur : tapis bleu et diviseurs en toit ----------
+// ---------- 3. aligneur : trois tapis en cascade, diviseurs inox à pans coupés ----------
+// Comme sur la machine réelle : chaque étage va plus vite que le précédent, les tomates s'écartent et les doublons
+// se défont ; les diviseurs, nez en proue, partagent le flot en deux, puis quatre, puis huit lignes.
 const aligneur = new THREE.Group(); scene.add(aligneur);
 const longAlign = X_ALIGN_FIN - X_ELEV_HAUT;
-boite(longAlign, 0.03, LARG - 0.1, M.bleuTapis, (X_ELEV_HAUT + X_ALIGN_FIN) / 2, Y - 0.02, 0, aligneur, 0.01);
-for (let i = 1; i < NB; i++) {
-  const z = (i - NB / 2) * PAS_Z;
-  const d = prisme(longAlign * 0.8, 0.08, 0.1, M.inox); d.position.set(X_ALIGN_FIN - longAlign * 0.4, Y, z); aligneur.add(d);
-  const pointe = new THREE.Mesh(new THREE.ConeGeometry(0.058, 0.24, 4), M.inox); pointe.rotation.z = Math.PI / 2; pointe.rotation.x = Math.PI / 4;
-  pointe.position.set(X_ALIGN_FIN - longAlign * 0.8 - 0.15, Y + 0.04, z); pointe.castShadow = true; aligneur.add(pointe);
+// surface fermée tirée le long de X : un profil (z, y) convexe, mis à l'échelle section par section, à facettes nettes
+function loft(profil, sections) {
+  const pos = [], a = new THREE.Vector3(), b = new THREE.Vector3(), n = new THREE.Vector3();
+  const tri = (p, q, r, ref) => {   // face orientée vers l'extérieur (à l'opposé de ref)
+    a.subVectors(q, p); b.subVectors(r, p); n.crossVectors(a, b);
+    if (n.dot(a.addVectors(p, q).add(r).divideScalar(3).sub(ref)) < 0) [q, r] = [r, q];
+    pos.push(p.x, p.y, p.z, q.x, q.y, q.z, r.x, r.y, r.z);
+  };
+  const cy = profil.reduce((s, p) => s + p[1], 0) / profil.length;
+  const P = sections.map(s => profil.map(([z, y]) => new THREE.Vector3(s.x, y * s.sy, z * s.sz)));
+  for (let k = 0; k < sections.length - 1; k++) {
+    const ref = new THREE.Vector3((sections[k].x + sections[k + 1].x) / 2, cy * (sections[k].sy + sections[k + 1].sy) / 2, 0);
+    for (let j = 0; j < profil.length; j++) {
+      const j2 = (j + 1) % profil.length;
+      tri(P[k][j], P[k][j2], P[k + 1][j2], ref); tri(P[k][j], P[k + 1][j2], P[k + 1][j], ref);
+    }
+  }
+  for (const [k, d] of [[0, 1], [sections.length - 1, -1]]) {
+    const ref = new THREE.Vector3(sections[k].x + d, cy * sections[k].sy, 0);
+    for (let j = 1; j < profil.length - 1; j++) tri(P[k][0], P[k][j], P[k][j + 1], ref);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return g;
 }
-boite(longAlign, 0.24, 0.05, M.inox, (X_ELEV_HAUT + X_ALIGN_FIN) / 2, Y + 0.06, -LARG / 2, aligneur);
-boite(longAlign, 0.24, 0.05, M.inox, (X_ELEV_HAUT + X_ALIGN_FIN) / 2, Y + 0.06, LARG / 2, aligneur);
-const barre = boite(0.06, 0.06, LARG + 0.2, M.inox, X_ALIGN_FIN - 0.25, Y + 0.28, 0, aligneur);
+const H_DIV = 0.1, RF = 0.03;                       // hauteur des diviseurs ; demi-longueur d'une tomate couchée
+const toit = (B, T) => [[-B / 2, 0], [B / 2, 0], [B / 2, 0.025], [T / 2, H_DIV], [-T / 2, H_DIV], [-B / 2, 0.025]];
+const ouverture = u => 0.06 + 0.94 * Math.sin(THREE.MathUtils.clamp(u, 0, 1) * Math.PI / 2);   // largeur du nez, de la pointe (0) au corps (1)
+const rainures = (() => {
+  const c = document.createElement('canvas'); c.width = 32; c.height = 4; const g = c.getContext('2d');
+  g.fillStyle = '#ffffff'; g.fillRect(0, 0, 32, 4); g.fillStyle = '#9fb0cc'; g.fillRect(0, 0, 3, 4);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+})();
+const tapisEtages = [];
+const SEGMENTS = Array.from({ length: NB + 1 }, () => []);   // par limite de ligne : les tronçons de diviseur qui la tiennent
+for (let e = 0; e < 3; e++) {
+  const x0 = X_ETAGES[e], x1 = X_ETAGES[e + 1], ye = Y_ETAGES[e];
+  const t = rainures.clone(); t.repeat.set((x1 - x0 + 0.03) / 0.05, 1); t.needsUpdate = true;
+  const mat = M.bleuTapis.clone(); mat.map = t;
+  boite(x1 - x0 + 0.03, 0.03, LARG - 0.1, mat, (x0 + x1) / 2 + 0.015, ye - 0.015, 0, aligneur, 0.012);
+  const rouleau = cylindre(0.017, LARG - 0.12, M.inoxBrosse, aligneur, 20); rouleau.rotation.x = Math.PI / 2; rouleau.position.set(x1 + 0.03, ye - 0.017, 0);
+  tapisEtages.push({ t, v: V_ETAGES[e] });
+  // diviseurs de l'étage : les deux bords, plus 1, 3 puis 7 diviseurs intérieurs
+  const limites = e === 0 ? [0, 4, 8] : e === 1 ? [0, 2, 4, 6, 8] : [0, 1, 2, 3, 4, 5, 6, 7, 8];
+  for (const b of limites) {
+    const ext = b === 0 || b === NB, B = ext ? 0.13 : 0.07, T = ext ? 0.085 : 0.026;
+    const zc = (b - NB / 2) * PAS_Z + (ext ? Math.sign(b - NB / 2) * 0.03 : 0);
+    const nez = ext ? 0.22 : 0.3, xn = x0 + (ext ? 0.02 : e === 0 ? 0.3 : 0.06), xf = x1 - (e === 2 ? 0 : 0.02);
+    const secs = [0, 0.18, 0.4, 0.65, 1].map(u => ({ x: xn + u * nez, sz: ouverture(u), sy: 0.3 + 0.7 * Math.sin(u * Math.PI / 2) }));
+    secs.push({ x: xf - 0.1, sz: 1, sy: 1 }, { x: xf, sz: ext ? 1 : 0.7, sy: 0.55 });
+    const m = new THREE.Mesh(loft(toit(B, T), secs), M.inoxPoli); m.position.set(0, ye, zc); m.castShadow = m.receiveShadow = true; aligneur.add(m);
+    SEGMENTS[b].push({ xn, xf, nez, zc, demi: B / 2, e });
+  }
+}
+// limite en Z imposée à une tomate par la limite de ligne b (sens +1 : diviseur en dessous, -1 : au-dessus)
+function bordAlign(b, x, sens) {
+  for (const s of SEGMENTS[b]) if (x >= s.xn && x <= s.xf) return s.zc + sens * (s.demi * ouverture((x - s.xn) / s.nez) + RF);
+  return -sens * (LARG / 2 - 0.025 - RF);
+}
+// dessus du tapis sous une tomate, avec la petite chute d'un étage à l'autre puis dans la chaîne
+function hauteurAlign(x) {
+  let y = Y_ETAGES[0];
+  for (let e = 1; e < 3; e++) { const k = THREE.MathUtils.clamp((x - X_ETAGES[e] + 0.01) / 0.06, 0, 1); y += (Y_ETAGES[e] - Y_ETAGES[e - 1]) * k * k; }
+  const k = THREE.MathUtils.clamp((x - X_ALIGN_FIN + 0.07) / 0.07, 0, 1);
+  return y + (Y + 0.026 - Y_ETAGES[2]) * k * k;
+}
+for (const s of [-1, 1]) boite(longAlign, 0.32, 0.05, M.inox, (X_ELEV_HAUT + X_ALIGN_FIN) / 2, Y + 0.09, s * LARG / 2, aligneur);
+// traverses boulonnées : tiges filetées vers chaque diviseur, écrous sur le dessus
+for (const [e, xb] of [[1, X_ETAGES[2] - 0.26], [2, X_ETAGES[3] - 0.42]]) {
+  boite(0.07, 0.045, LARG + 0.24, M.inoxPoli, xb, Y + 0.33, 0, aligneur, 0.012);
+  for (const s of [-1, 1]) boite(0.05, 0.08, 0.05, M.inoxPoli, xb, Y + 0.27, s * LARG / 2, aligneur, 0.01);
+  for (const segs of SEGMENTS) for (const s of segs) if (s.e === e) {
+    const haut = Y_ETAGES[e] + H_DIV;
+    const tige = cylindre(0.006, Y + 0.31 - haut, M.inoxPoli, aligneur, 10); tige.position.set(xb, (haut + Y + 0.31) / 2, s.zc);
+    const ecrou = cylindre(0.013, 0.014, M.inoxPoli, aligneur, 6); ecrou.position.set(xb, Y + 0.36, s.zc);
+  }
+}
 
 // ---------- 4. chaînes à diabolos (instanciées) ----------
 // chaque ligne : une chaîne (maillons blancs) dont chaque axe porte deux diabolos noirs à couronne dentée ;
@@ -545,7 +634,7 @@ let distance = 0, dernier = -1;
 const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), p3 = new THREE.Vector3(), e3 = new THREE.Vector3(), eul = new THREE.Euler(), col = new THREE.Color();
 const mP = new THREE.Matrix4(), off = new THREE.Vector3();
 
-function xSlot(n) { return X_ELEV_BAS + (distance - n * PAS); }
+function xSlot(n) { return xReel(X_ELEV_BAS + (distance - n * PAS)); }
 function creer(n, v) {
   if (Math.random() < 0.1) return;
   let p = pool.find(f => f.etat === 'libre');
@@ -555,7 +644,10 @@ function creer(n, v) {
   // classe -> stations de ce côté (2 à 3 stations par classe), quelques retours en bout de ligne
   let st = Math.min(9, classe * 2 + (Math.random() < 0.5 ? 0 : 1) + (classe === 4 ? 1 : 0));
   if (Math.random() < 0.03) st = -1;
-  Object.assign(p, { etat: 'ligne', n, v, z0: (Math.random() - 0.5) * 1.3, classe, cote, st, t: 0, ph: Math.random() * 6.3, k: 0.8 + Math.random() * 0.25, el: 1.3 + Math.random() * 0.25 });
+  // en vrac : chaque tomate reste dans la bande de sa ligne, de part et d'autre du milieu en alternance
+  // (deux voisines d'une même ligne ne se chevauchent pas quand le premier étage les tasse)
+  const z0 = VOIES[v] + (n % 2 ? 1 : -1) * (0.03 + Math.random() * 0.035);
+  Object.assign(p, { etat: 'ligne', n, v, z0, zs: undefined, dx: (Math.random() - 0.5) * 0.06, classe, cote, st, t: 0, ph: Math.random() * 6.3, k: 0.8 + Math.random() * 0.25, el: 1.3 + Math.random() * 0.25 });
 }
 function placer(i, p, pos, rx, ry, rz) {
   const r = R_FRUIT * p.k;
@@ -577,12 +669,16 @@ function majFruits(dt, t) {
       const x = xSlot(p.n);
       if (x < X_ELEV_HAUT) {                    // sur l'élévateur, en vrac
         const k = (x - X_ELEV_BAS) / (X_ELEV_HAUT - X_ELEV_BAS);
-        p3.set(x, 0.75 + k * (Y - 0.75) + 0.025, p.z0 * 1.05);
+        p3.set(x + p.dx, 0.75 + k * (Y_HAUT - 0.75) + 0.025, p.z0);
         placer(i, p, p3, p.ph, 0, -t * 2);
-      } else if (x < X_ALIGN_FIN) {             // aligneur : rabattu vers sa ligne
-        const k = THREE.MathUtils.smootherstep(x, X_ELEV_HAUT, X_ALIGN_FIN - 0.3);
-        p3.set(x + Math.sin(t * 7 + p.ph) * 0.01 * (1 - k), Y + 0.022, THREE.MathUtils.lerp(p.z0, zV, k));
-        placer(i, p, p3, 0, (1 - k) * p.ph, -(x / 0.022) * 0.5);
+      } else if (x < X_ALIGN_FIN) {             // aligneur : les nez des diviseurs la rabattent dans sa ligne
+        const w = THREE.MathUtils.smootherstep(x, X_ELEV_HAUT + 0.1, X_ALIGN_FIN - 0.35);
+        const xf = x + p.dx * (1 - w);
+        let z = THREE.MathUtils.clamp(THREE.MathUtils.lerp(p.z0, zV, w), bordAlign(p.v, xf, 1), bordAlign(p.v + 1, xf, -1));
+        if (p.zs !== undefined && Math.abs(z - zV) > Math.abs(p.zs - zV)) z = p.zs;   // poussée par un nez, elle ne revient pas en arrière
+        p.zs = p.zs === undefined ? z : THREE.MathUtils.lerp(p.zs, z, 1 - Math.exp(-dt * 14));
+        p3.set(xf, hauteurAlign(xf) + 0.02, p.zs);
+        placer(i, p, p3, 0, (1 - w) * p.ph, -(x / 0.022) * 0.5);
       } else {                                  // dans son godet, il tourne sur les rouleaux
         p3.set(x, Y + 0.046, zV);
         placer(i, p, p3, 0, 0, -(x / 0.022) * 0.8 + p.ph);   // couchée entre deux axes, tourne sur son grand axe
@@ -664,8 +760,8 @@ const ETAPES = [
   { pos: [9.5, 7.5, 12.5], vise: [-1.5, 1.0, 0] },
   { pos: [-13.9, 4.6, 3.6], vise: [-9.5, 1.1, -1.7], ancre: [-10.6, 2.0, 0.6] },
   { pos: [-6.9, 2.4, 3.6], vise: [-7.5, 1.0, 0], ancre: [-7.3, 1.05, 0.5] },
-  { pos: [-4.1, 2.4, 2.2], vise: [-4.7, 1.15, 0], ancre: [-4.4, 1.32, 0.2] },
-  { pos: [-4.35, 1.8, 1.05], vise: [-3.05, 1.22, 0.0], ancre: [-3.1, 1.25, 0.09] },
+  { pos: [-6.15, 2.3, 1.55], vise: [-4.45, 1.1, -0.2], ancre: [-4.6, 1.37, 0] },
+  { pos: [-3.75, 1.78, 0.95], vise: [-2.75, 1.2, -0.05], ancre: [-3.1, 1.25, 0.09] },
   { pos: [-4.6, 2.1, 4.9], vise: [-2.6, 1.35, 1.6], ancre: [-2.62, 1.5, 1.8] },
   { pos: [-6.4, 2.1, 4.2], vise: [-1.6, 1.75, -0.4], ancre: [-1.45, 3.13, 0.5] },
   { pos: [2.9, 2.2, 3.4], vise: [0.3, 1.8, 0], ancre: [0.55, 2.35, 1.0] },
@@ -745,6 +841,7 @@ let temps = 0, tRobot = 0;
 function avancer(dt) {
   temps += dt; distance += VITESSE * dt;
   majGodets(); majFruits(dt, temps);
+  for (const te of tapisEtages) te.t.offset.x = -((distance * te.v / 0.05) % 1);
   const eclair = 0.5 + 0.5 * Math.sin(temps * 5);
   M.led.emissiveIntensity = 0.9 + eclair * 0.5; lumTunnel.intensity = 0.8 + eclair * 0.8;
   for (const b of bouffees) if (b.m.visible) {
