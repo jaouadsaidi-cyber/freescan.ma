@@ -103,9 +103,11 @@ h1,h2,h3{font-family:var(--titre);font-weight:600;letter-spacing:-.02em;line-hei
 .fruits{position:relative;transition:background 1s}
 .fruits .tete{display:flex;justify-content:space-between;align-items:end;gap:30px;flex-wrap:wrap;margin-bottom:46px}
 .carrousel{position:relative}
-.diapos{position:relative;height:clamp(460px,48vw,560px)}
-.diapo{position:absolute;inset:0;display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(24px,4vw,60px);align-items:center;opacity:0;visibility:hidden;transition:opacity .8s ease,visibility .8s}
-.diapo.active{opacity:1;visibility:visible}
+.diapos{position:relative;height:clamp(460px,48vw,560px);overflow-x:clip}
+.diapo{position:absolute;inset:0;display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(24px,4vw,60px);align-items:center;opacity:0;visibility:hidden;transform:translateX(calc(100% + 80px));transition:transform .9s cubic-bezier(.65,0,.35,1),opacity .9s,visibility .9s}
+.diapo.avant{transform:translateX(calc(-100% - 80px))}
+.diapo.active{opacity:1;visibility:visible;transform:none}
+.diapo.sans-transition{transition:none!important}
 .diapo .media{position:relative;height:100%;border-radius:calc(var(--r) + 8px);overflow:hidden;background:#000;box-shadow:0 40px 120px -30px var(--teinte)}
 .diapo .media img{width:100%;height:100%;object-fit:cover;transform:scale(1.14);transition:transform 9s ease-out}
 .diapo.active .media img{transform:scale(1)}
@@ -132,10 +134,10 @@ h1,h2,h3{font-family:var(--titre);font-weight:600;letter-spacing:-.02em;line-hei
 .fleche{width:48px;height:48px;border-radius:50%;border:1px solid var(--trait);background:rgba(255,255,255,.03);color:var(--texte);display:grid;place-items:center;cursor:pointer;transition:background .2s}
 .fleche:hover{background:rgba(255,255,255,.1)}
 .fleche svg{width:20px;height:20px}
+.fleche .lecture{display:none}.fleche[aria-pressed="true"] .lecture{display:block}.fleche[aria-pressed="true"] .pause{display:none}
 @media (max-width:900px){
-  .diapos{height:auto}
-  .diapo{position:relative;grid-template-columns:1fr;display:none}
-  .diapo.active{display:grid}
+  .diapos{height:auto;display:grid}
+  .diapo{position:relative;inset:auto;grid-area:1/1;grid-template-columns:1fr}
   .diapo .media{height:62vw;min-height:240px}
   .criteres{grid-template-columns:1fr 1fr 1fr}
   .puce{font-size:0;padding-top:6px}
@@ -291,7 +293,7 @@ footer a:hover{color:var(--texte)}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
   .apparait{opacity:1;transform:none}
-  .diapo{transition:opacity .8s ease,visibility .8s!important}
+  .diapo{transition:transform .9s cubic-bezier(.65,0,.35,1),opacity .9s,visibility .9s!important}
 }
 
 /* arabe (droite à gauche) */
@@ -436,6 +438,7 @@ html[dir=rtl] .chiffres div:last-child{border-left:0}
           <button class="puce" role="tab" aria-label="التمر"><i></i>التمر</button>
           <button class="puce" role="tab" aria-label="التوت الأزرق"><i></i>التوت الأزرق</button>
         </div>
+        <button class="fleche" id="pauseCar" aria-pressed="false" aria-label="إيقاف التمرير"><svg class="pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><svg class="lecture" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></button>
         <button class="fleche" id="prec" aria-label="الثمرة السابقة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
         <button class="fleche" id="suiv" aria-label="الثمرة التالية"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button>
       </div>
@@ -641,12 +644,18 @@ html[dir=rtl] .chiffres div:last-child{border-left:0}
   var section=document.getElementById('fruits'),car=document.getElementById('carrousel');
   var diapos=[].slice.call(car.querySelectorAll('.diapo')),puces=[].slice.call(car.querySelectorAll('.puce'));
   var courant=0,DUREE=8000,debut=0,ecoule=0,pause=false,visible=false,raf;
-    function montrer(i){
-    diapos[courant].classList.remove('active');puces[courant].classList.remove('active');
-    puces[courant].querySelector('i').style.width='0';
-    
-    courant=(i+diapos.length)%diapos.length;
-    var d=diapos[courant];d.classList.add('active');puces[courant].classList.add('active');
+  // sens > 0 : le nouveau fruit arrive par la droite, l'ancien part à gauche ; sens < 0 : l'inverse
+  function montrer(i,sens){
+    var n=diapos.length,j=(i+n)%n,anc=diapos[courant],d=diapos[j];
+    if(!sens)sens=j>=courant?1:-1;
+    if(d!==anc){
+      d.classList.add('sans-transition');d.classList.toggle('avant',sens<0);void d.offsetWidth;d.classList.remove('sans-transition');
+      anc.classList.remove('active');anc.classList.toggle('avant',sens>0);
+      d.classList.remove('avant');
+    }
+    puces[courant].classList.remove('active');puces[courant].querySelector('i').style.width='0';
+    courant=j;
+    d.classList.add('active');puces[courant].classList.add('active');
     section.style.background='radial-gradient(70% 60% at 75% 40%,'+getComputedStyle(d).getPropertyValue('--teinte').trim()+'22,transparent 70%),'+d.dataset.fond;
     jouer();ecoule=0;debut=performance.now();
   }
@@ -654,16 +663,17 @@ html[dir=rtl] .chiffres div:last-child{border-left:0}
   function boucle(t){
     if(!pause&&visible){ecoule+=t-debut;
       puces[courant].querySelector('i').style.width=Math.min(100,ecoule/DUREE*100)+'%';
-      if(ecoule>=DUREE)montrer(courant+1);}
+      if(ecoule>=DUREE)montrer(courant+1,1);}
     debut=t;raf=requestAnimationFrame(boucle);
   }
   puces.forEach(function(p,i){p.addEventListener('click',function(){montrer(i)})});
-  document.getElementById('prec').onclick=function(){montrer(courant-1)};
-  document.getElementById('suiv').onclick=function(){montrer(courant+1)};
-  car.addEventListener('mouseenter',function(){pause=true});car.addEventListener('mouseleave',function(){pause=false});
-  document.addEventListener('keydown',function(e){if(!visible)return;if(e.key==='ArrowRight')montrer(courant+1);if(e.key==='ArrowLeft')montrer(courant-1)});
+  document.getElementById('prec').onclick=function(){montrer(courant-1,-1)};
+  document.getElementById('suiv').onclick=function(){montrer(courant+1,1)};
+  var bPause=document.getElementById('pauseCar');
+  bPause.onclick=function(){pause=!pause;bPause.setAttribute('aria-pressed',pause?'true':'false')};
+  document.addEventListener('keydown',function(e){if(!visible)return;if(e.key==='ArrowRight')montrer(courant+1,1);if(e.key==='ArrowLeft')montrer(courant-1,-1)});
   var x0=null;car.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});
-  car.addEventListener('touchend',function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50)montrer(courant+(dx<0?1:-1));x0=null});
+  car.addEventListener('touchend',function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50)montrer(courant+(dx<0?1:-1),dx<0?1:-1);x0=null});
   new IntersectionObserver(function(es){visible=es[0].isIntersecting},{threshold:.25}).observe(car);
   montrer(0);debut=performance.now();raf=requestAnimationFrame(boucle);
 
