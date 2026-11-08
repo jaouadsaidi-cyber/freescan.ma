@@ -450,9 +450,10 @@ const spectral = new THREE.Group(); scene.add(spectral); spectral.position.x = X
 }
 const lumTunnel = new THREE.PointLight('#dfeeff', 1.2, 2.5, 2); lumTunnel.position.set(0, Y + 0.2, 0); vision.add(lumTunnel);
 // coffret électrique : armoire inox en portique sur toute la largeur de la cellule, collée à son entrée ;
-// la chaîne passe sous le linteau. Le repère du groupe est la colonne côté opposé aux sorties (écran, commandes).
+// la chaîne passe sous le linteau. Le repère du groupe est la colonne côté opposé aux sorties ; le moniteur tactile
+// de réglage est sur la face d'extrémité de la colonne côté sorties.
 const pupitre = new THREE.Group(); scene.add(pupitre);
-const COF_DX = 0.7, COF_PASSAGE = LARG / 2 + 0.15, COF_WZ = PV.lb - COF_PASSAGE, COF_Z = -(COF_PASSAGE + COF_WZ / 2);
+const COF_DX = 0.85, COF_PASSAGE = LARG / 2 + 0.15, COF_WZ = PV.lb - COF_PASSAGE, COF_Z = -(COF_PASSAGE + COF_WZ / 2);
 pupitre.position.set(X_VISION - PV.zm - 0.05 - COF_DX / 2, 0, COF_Z);
 {
   const H = 2.75, Wz = COF_WZ, Dx = COF_DX, yL = Y + 0.32, zL = -COF_Z;   // dessous du linteau, axe de la ligne
@@ -465,22 +466,23 @@ pupitre.position.set(X_VISION - PV.zm - 0.05 - COF_DX / 2, 0, COF_Z);
   boite(0.02, H * 0.58, Wz - 0.1, M.inox, -Dx / 2 - 0.01, H * 0.31, 2 * zL, pupitre, 0.006);
   boite(0.02, H * 0.36, Wz - 0.1, M.inox, -Dx / 2 - 0.01, H * 0.8, 0, pupitre, 0.006);        // porte haute
   boite(0.02, H * 0.58, Wz - 0.1, M.inox, -Dx / 2 - 0.01, H * 0.31, 0, pupitre, 0.006);       // porte basse
+  // face d'extrémité côté sorties : moniteur tactile de réglage, voyant, boutons, arrêt d'urgence
+  const zF = 2 * zL + Wz / 2;
   const ecranTex = new THREE.TextureLoader().load(new URL('../media/ui-suivi.jpg?v=2', import.meta.url).href); ecranTex.colorSpace = THREE.SRGBColorSpace;
-  boite(0.03, 0.46, 0.7, new THREE.MeshStandardMaterial({ color: '#e9ecef', roughness: 0.5 }), -Dx / 2 - 0.03, 1.5, 0, pupitre, 0.01);
-  const ecran = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.36), new THREE.MeshBasicMaterial({ map: ecranTex, toneMapped: false }));
-  ecran.position.set(-Dx / 2 - 0.047, 1.5, 0); ecran.rotation.y = -Math.PI / 2; pupitre.add(ecran);
-  // petit écran d'automate, voyant, sélecteur, boutons, arrêt d'urgence
-  const hmi = new THREE.Mesh(new THREE.PlaneGeometry(0.26, 0.18), new THREE.MeshStandardMaterial({ color: '#cfd6de', emissive: '#7d8ea6', emissiveIntensity: 0.4 }));
-  hmi.position.set(-Dx / 2 - 0.025, 1.05, -0.15); hmi.rotation.y = -Math.PI / 2; pupitre.add(hmi);
-  const voy = cylindre(0.025, 0.03, M.ledBleue, pupitre, 16); voy.rotation.z = Math.PI / 2; voy.position.set(-Dx / 2 - 0.03, 1.9, 0);
-  for (const [z, y, m] of [[-0.25, 0.75, M.ledBleue], [-0.05, 0.75, M.noir], [0.15, 0.75, M.noir]]) { const b = cylindre(0.022, 0.03, m, pupitre, 14); b.rotation.z = Math.PI / 2; b.position.set(-Dx / 2 - 0.03, y, z); }
-  const au = cylindre(0.035, 0.04, new THREE.MeshStandardMaterial({ color: '#d61f1f', roughness: 0.4 }), pupitre, 20); au.rotation.z = Math.PI / 2; au.position.set(-Dx / 2 - 0.035, 0.55, -0.25);
+  boite(0.74, 0.48, 0.03, new THREE.MeshStandardMaterial({ color: '#e9ecef', roughness: 0.5 }), 0, 1.5, zF + 0.015, pupitre, 0.01);
+  const ecran = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.38), new THREE.MeshBasicMaterial({ map: ecranTex, toneMapped: false }));
+  ecran.position.set(0, 1.5, zF + 0.032); pupitre.add(ecran);
+  const voy = cylindre(0.025, 0.03, M.ledBleue, pupitre, 16); voy.rotation.x = Math.PI / 2; voy.position.set(0, 1.95, zF + 0.015);
+  for (const [x, m] of [[-0.18, M.ledBleue], [0, M.noir], [0.18, M.noir]]) { const b = cylindre(0.022, 0.03, m, pupitre, 14); b.rotation.x = Math.PI / 2; b.position.set(x, 1.0, zF + 0.015); }
+  boite(0.12, 0.12, 0.1, new THREE.MeshStandardMaterial({ color: '#f2c200', roughness: 0.5 }), 0, 0.78, zF + 0.05, pupitre, 0.02);
+  const au = cylindre(0.035, 0.04, new THREE.MeshStandardMaterial({ color: '#d61f1f', roughness: 0.4 }), pupitre, 20); au.rotation.x = Math.PI / 2; au.position.set(0, 0.78, zF + 0.115);
   // triangles de danger électrique
   const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
   g.fillStyle = '#f2c200'; g.beginPath(); g.moveTo(64, 8); g.lineTo(122, 116); g.lineTo(6, 116); g.closePath(); g.fill(); g.strokeStyle = '#111'; g.lineWidth = 7; g.stroke();
   g.fillStyle = '#111'; g.beginPath(); g.moveTo(70, 40); g.lineTo(52, 78); g.lineTo(66, 78); g.lineTo(58, 104); g.lineTo(78, 66); g.lineTo(64, 66); g.closePath(); g.fill();
   const tt = new THREE.CanvasTexture(c); tt.colorSpace = THREE.SRGBColorSpace;
   for (const y of [2.55, 1.9]) { const tri = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.16), new THREE.MeshStandardMaterial({ map: tt, transparent: true })); tri.position.set(-Dx / 2 - 0.024, y, 0.25); tri.rotation.y = -Math.PI / 2; pupitre.add(tri); }
+  { const tri = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.16), new THREE.MeshStandardMaterial({ map: tt, transparent: true })); tri.position.set(0, 2.35, zF + 0.004); pupitre.add(tri); }
 }
 
 // ---------- 6–7. stations ST : vannes, tapis transversaux, caisses ----------
@@ -664,7 +666,7 @@ const ETAPES = [
   { pos: [-6.9, 2.4, 3.6], vise: [-7.5, 1.0, 0], ancre: [-7.3, 1.05, 0.5] },
   { pos: [-4.1, 2.4, 2.2], vise: [-4.7, 1.15, 0], ancre: [-4.4, 1.32, 0.2] },
   { pos: [-4.35, 1.8, 1.05], vise: [-3.05, 1.22, 0.0], ancre: [-3.1, 1.25, 0.09] },
-  { pos: [-6.2, 2.3, -3.6], vise: [-2.7, 1.5, -0.6], ancre: [-2.95, 1.5, -1.36] },
+  { pos: [-4.6, 2.1, 4.9], vise: [-2.6, 1.35, 1.6], ancre: [-2.62, 1.5, 1.8] },
   { pos: [-6.4, 2.1, 4.2], vise: [-1.6, 1.75, -0.4], ancre: [-1.45, 3.13, 0.5] },
   { pos: [2.9, 2.2, 3.4], vise: [0.3, 1.8, 0], ancre: [0.55, 2.35, 1.0] },
   { pos: [3.0, 1.5, 2.3], vise: [2.3, 0.95, 0.6], ancre: [2.25, 0.75, 1.05] },
