@@ -193,13 +193,26 @@ const cascade = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 12, 9), new 
 cascade.frustumCulled = false; cascade.count = 0; scene.add(cascade);
 const graines = Array.from({ length: 160 }, () => ({ dx: Math.random() * 0.5 - 0.25, dz: Math.random() * 1.1 - 0.55, d: Math.random() * 0.35, r: 0.019 + Math.random() * 0.006, v: 0.3 + Math.random() * 0.5 }));
 // palette de caisses pleines
-const pile = new THREE.Group(); scene.add(pile); pile.position.set(-15.7, 0, -3.3);
-boite(1.2, 0.14, 0.8, new THREE.MeshStandardMaterial({ color: '#2a2f38', roughness: 0.8 }), 0, 0.07, 0, pile, 0.01);
-for (let i = 0; i < 6; i++) { const c = caisse(pile, vracMat); c.position.set(i % 2 ? 0.3 : -0.3, 0.14 + Math.floor(i / 2) * 0.31, 0); c.rotation.y = Math.PI / 2; }
+// palette EUR1 en plastique (1200 × 800, côté long selon Z) : plateau, 9 plots, 3 semelles ;
+// 4 couches de 4 bacs 600 × 400 dans le sens de la longueur ; il manque le bac que le robot vient de prendre
+const pile = new THREE.Group(); scene.add(pile); pile.position.set(-10.0, 0, -3.35);
+const H_PAL = 0.15, COUCHES = 4, SLOT_PRIS = [-0.2, 0.3];   // bac pris : côté robot, côté ligne
+{
+  const plast = new THREE.MeshStandardMaterial({ color: '#34506e', roughness: 0.7 });
+  boite(0.8, 0.035, 1.2, plast, 0, H_PAL - 0.0175, 0, pile, 0.012);
+  for (const x of [-0.34, 0, 0.34]) {
+    boite(0.1, 0.022, 1.2, plast, x, 0.011, 0, pile, 0.008);
+    for (const z of [-0.54, 0, 0.54]) boite(0.13, H_PAL - 0.055, 0.14, plast, x, 0.022 + (H_PAL - 0.055) / 2, z, pile, 0.01);
+  }
+  for (let n = 0; n < COUCHES; n++) for (const x of [-0.2, 0.2]) for (const z of [-0.3, 0.3]) {
+    if (n === COUCHES - 1 && x === SLOT_PRIS[0] && z === SLOT_PRIS[1]) continue;
+    const c = caisse(pile, vracMat); c.position.set(x, H_PAL + n * 0.31, z); c.rotation.y = Math.PI / 2;
+  }
+}
 // robot 4 axes (palettiseur) : base tournante, bras, avant-bras, poignet qui garde le préhenseur horizontal
 const robot = { base: new THREE.Group(), tourelle: new THREE.Group(), epaule: new THREE.Group(), coude: new THREE.Group(), poignet: new THREE.Group() };
 {
-  const R = robot; groupeRobot.add(R.base); R.base.position.set(-14.4, 0, -2.3);
+  const R = robot; groupeRobot.add(R.base); R.base.position.set(-11.35, 0, -2.25);
   cylindre(0.42, 0.22, M.noir, R.base).position.y = 0.11;
   R.base.add(R.tourelle);
   boite(0.75, 0.55, 0.6, M.robot, 0, 0.5, 0, R.tourelle, 0.08);
@@ -246,9 +259,11 @@ const amenee = new THREE.Group(); scene.add(amenee);
 // les deux caisses du cycle pendant leur trajet sur l'amenée
 const caissesAmenee = [caisse(scene, vracMat), caisse(scene, vracMat)];
 for (const c of caissesAmenee) { c.scale.setScalar(0.95); c.visible = false; }
+// prise : le bac manquant de la couche du haut (poignet ≈ 0,79 m au-dessus de l'origine du bac)
+const XP = PIL.x + SLOT_PRIS[0], ZP = PIL.z + SLOT_PRIS[1], YP = H_PAL + (COUCHES - 1) * 0.31 + 0.79;
 const trajet = [ // [x, y, z, porte] : palette -> début du convoyeur d'amenée
-  [-14.3, 2.4, -1.4, 0], [PIL.x, 2.0, PIL.z, 0], [PIL.x, 1.55, PIL.z, 0], [PIL.x, 1.55, PIL.z, 1], [PIL.x, 2.3, PIL.z, 1],
-  [X_VERSEUR, 2.2, Z_POSE, 1], [X_VERSEUR, 1.4, Z_POSE, 1], [X_VERSEUR, 1.4, Z_POSE, 0], [X_VERSEUR - 0.3, 2.2, Z_POSE - 0.2, 0], [-14.3, 2.4, -1.4, 0]];
+  [-11.3, 2.5, -1.4, 0], [XP, YP + 0.5, ZP, 0], [XP, YP, ZP, 0], [XP, YP, ZP, 1], [XP, YP + 0.7, ZP, 1],
+  [X_VERSEUR, 2.3, Z_POSE, 1], [X_VERSEUR, 1.4, Z_POSE, 1], [X_VERSEUR, 1.4, Z_POSE, 0], [X_VERSEUR + 0.3, 2.2, Z_POSE - 0.2, 0], [-11.3, 2.5, -1.4, 0]];
 const reposRobot = new THREE.Vector3(...trajet[0]);
 function caisseBlanche(parent) { return caisse(parent, null, M.caisse); }
 
@@ -620,7 +635,7 @@ function souffler(x, z) {
 // ---------- étapes : caméra et repères ----------
 const ETAPES = [
   { pos: [9.5, 7.5, 12.5], vise: [-1.5, 1.0, 0] },
-  { pos: [-17.6, 4.2, 3.0], vise: [-13.6, 1.1, -1.2], ancre: [-12.9, 2.0, 0.6] },
+  { pos: [-16.2, 4.6, 3.6], vise: [-11.8, 1.1, -1.7], ancre: [-12.9, 2.0, 0.6] },
   { pos: [-9.2, 2.4, 3.6], vise: [-9.8, 1.0, 0], ancre: [-9.6, 1.05, 0.5] },
   { pos: [-6.4, 2.4, 2.2], vise: [-7.0, 1.15, 0], ancre: [-6.7, 1.32, 0.2] },
   { pos: [-4.75, 1.62, 0.55], vise: [-5.35, 1.22, 0.0], ancre: [-5.05, 1.25, 0.09] },
