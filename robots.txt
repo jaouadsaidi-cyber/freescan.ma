@@ -1,2 +1,4 @@
 User-agent: *
 Disallow: /aide/
+
+Sitemap: https://freescan.ma/sitemap.xml
