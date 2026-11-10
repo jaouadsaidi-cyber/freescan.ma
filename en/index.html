@@ -299,6 +299,47 @@ footer .enveloppe{display:flex;justify-content:space-between;gap:20px;flex-wrap:
 footer img{height:28px;width:auto;opacity:.8}
 footer a:hover{color:var(--texte)}
 
+/* demande de contact, bouton d'appel et fenêtre du formulaire */
+button.bouton{font-family:inherit}
+.appel-rappel{display:flex;align-items:center;gap:12px 18px;flex-wrap:wrap;margin-top:30px}
+.appel-rappel small{color:var(--doux);font-size:14px}
+.bouton.plein.rappel{background:linear-gradient(100deg,#ff7a45,#ffb347 30%,#7db4ff 70%,#9b8cff);background-size:220% 100%;color:var(--fond);animation:reflet 7s ease-in-out infinite alternate,appel 2.6s ease-out infinite}
+@keyframes reflet{to{background-position:100% 0}}
+@keyframes appel{0%{box-shadow:0 0 0 0 rgba(255,150,100,.5)}70%,100%{box-shadow:0 0 0 16px rgba(255,150,100,0)}}
+html:has(.demande[open]){overflow:hidden}
+.demande{margin:auto;width:min(660px,100% - 24px);max-height:calc(100% - 24px);padding:0;border:1px solid var(--trait);border-radius:28px;color:var(--texte);
+  background:radial-gradient(70% 60% at 100% 0%,rgba(255,90,60,.16),transparent 60%),radial-gradient(70% 70% at 0% 100%,rgba(74,143,224,.22),transparent 60%),var(--carte);
+  box-shadow:0 40px 120px rgba(0,0,0,.6);overflow:auto;overscroll-behavior:contain}
+.demande::backdrop{background:rgba(3,6,12,.72);backdrop-filter:blur(6px)}
+.demande[open]{animation:monte .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes monte{from{opacity:0;transform:translateY(24px) scale(.98)}}
+.demande form,.demande .merci{padding:clamp(26px,5vw,44px)}
+.demande h3{font-size:clamp(26px,3.4vw,34px);margin:14px 0 8px}
+.demande .intro{color:var(--doux);margin-bottom:26px}
+.champs{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.champs label{display:grid;gap:7px}
+.champs label.large{grid-column:1/-1}
+.champs label>span{color:var(--pale);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.champs label i{font-style:normal;font-weight:400;letter-spacing:0;text-transform:none;opacity:.85}
+.champs input,.champs textarea{width:100%;font:inherit;font-size:16px;color:var(--texte);background:rgba(6,10,19,.55);border:1px solid var(--trait);border-radius:14px;padding:13px 15px;transition:border-color .2s,box-shadow .2s}
+.champs textarea{resize:vertical;min-height:120px}
+.champs input:focus,.champs textarea:focus{outline:0;border-color:rgba(125,180,255,.7);box-shadow:0 0 0 4px rgba(74,143,224,.18)}
+.champs ::placeholder{color:var(--pale)}
+.champs .piege{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);opacity:0;pointer-events:none}
+.demande .mention{color:var(--pale);font-size:13px;margin:16px 0 22px}
+.pied-form{display:flex;align-items:center;gap:14px 18px;flex-wrap:wrap}
+.pied-form .etat{color:var(--doux);font-size:14px}
+.pied-form .etat.erreur{color:#ff8a70}
+.demande .bouton[disabled]{opacity:.6;cursor:wait;transform:none}
+.demande .fermer{position:absolute;top:14px;inset-inline-end:14px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.06);border:1px solid var(--trait);color:var(--doux);cursor:pointer;transition:color .2s,background .2s}
+.demande .fermer:hover{color:var(--texte);background:rgba(255,255,255,.12)}
+.demande .fermer svg{width:18px;height:18px}
+.demande .merci{text-align:center;padding-block:clamp(48px,8vw,72px)}
+.merci .coche{width:68px;height:68px;margin:0 auto 20px;border-radius:50%;display:grid;place-items:center;background:rgba(74,143,224,.16);color:var(--bleu2)}
+.merci .coche svg{width:30px;height:30px}
+.merci p{color:var(--doux);margin:8px auto 28px;max-width:40ch}
+@media (max-width:560px){.champs{grid-template-columns:1fr}}
+
 /* apparition */
 .apparait{opacity:0;transform:translateY(40px);transition:opacity 1s cubic-bezier(.2,.8,.2,1),transform 1s cubic-bezier(.2,.8,.2,1)}
 .apparait.vu{opacity:1;transform:none}
@@ -580,6 +621,11 @@ footer a:hover{color:var(--texte)}
         <img src="../media/logo-aem.png?v=2" alt="AEM" width="397" height="216" style="height:72px;width:auto;margin-bottom:14px"><br><span class="surtitre">AEM · Aït Melloul Électromécanique</span>
         <h2>Let's talk about your fruit.</h2>
         <p class="chapo">Send us your products and your grading requirements: we'll show you what Freescan does with them.</p>
+        <div class="appel-rappel">
+          <button type="button" class="bouton plein rappel" data-demande aria-haspopup="dialog">Request a call back
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          <small>Free, no commitment</small>
+        </div>
       </div>
       <div class="coord">
         <a href="mailto:contact@aem.industries?subject=Freescan%20%E2%80%94%20information%20request"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg><span><small>Email</small>contact@aem.industries</span></a>
@@ -591,6 +637,36 @@ footer a:hover{color:var(--texte)}
   </div>
 </section>
 
+
+<dialog class="demande" id="demande" aria-labelledby="demandeTitre">
+  <button type="button" class="fermer" data-fermer aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <form id="formDemande" data-adresse="https://script.google.com/macros/s/AKfycbxeyf-om8sOgHXiRZvgEhL_TBSWY0V4qYhLzDchhmhv1dak2i8Zqrq0zjayytQvPu8y/exec" data-envoi="Sending…" data-erreur="Your request could not be sent. Please try again, or email us at contact@aem.industries.">
+    <span class="surtitre">Call back request</span>
+    <h3 id="demandeTitre">Tell us about your project.</h3>
+    <p class="intro">Leave your details and a Freescan specialist will get back to you.</p>
+    <div class="champs">
+      <label><span>Last name</span><input name="nom" dir="auto" autocomplete="family-name" required maxlength="80"></label>
+      <label><span>First name</span><input name="prenom" dir="auto" autocomplete="given-name" required maxlength="80"></label>
+      <label><span>Company <i>optional</i></span><input name="societe" dir="auto" autocomplete="organization" maxlength="120"></label>
+      <label><span>Phone <i>optional</i></span><input name="tel" type="tel" autocomplete="tel" maxlength="40"></label>
+      <label class="large"><span>Email</span><input name="email" type="email" autocomplete="email" required maxlength="160"></label>
+      <label class="large"><span>Message</span><textarea name="message" dir="auto" rows="4" required maxlength="4000" placeholder="Your fruit, your volumes, your questions…"></textarea></label>
+      <label class="piege" aria-hidden="true">Site<input name="site" tabindex="-1" autocomplete="off"></label>
+    </div>
+    <p class="mention">Your details are used only to reply to you.</p>
+    <div class="pied-form">
+      <button type="submit" class="bouton plein">Send my request
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <p class="etat" role="status" aria-live="polite"></p>
+    </div>
+  </form>
+  <div class="merci" hidden>
+    <div class="coche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h3>Thank you, request received.</h3>
+    <p>We will get back to you very soon.</p>
+    <button type="button" class="bouton verre" data-fermer>Close</button>
+  </div>
+</dialog>
 </main>
 
 <footer>
@@ -679,6 +755,34 @@ footer a:hover{color:var(--texte)}
   document.addEventListener('keydown',function(e){if(!visible)return;if(e.key==='ArrowRight')aller(courant+1,1);if(e.key==='ArrowLeft')aller(courant-1,-1)});
   new IntersectionObserver(function(es){visible=es[0].isIntersecting},{threshold:.25}).observe(car);
   peindre();activer(0);debut=performance.now();requestAnimationFrame(boucle);
+
+  // demande de contact : la fenêtre s'ouvre par les boutons [data-demande] ou l'adresse …/#demande ;
+  // l'envoi part vers le script Google (une ligne dans le tableur et un e-mail d'alerte)
+  var dlg=document.getElementById('demande'),form=document.getElementById('formDemande');
+  var etat=form.querySelector('.etat'),envoyer=form.querySelector('[type=submit]'),merci=dlg.querySelector('.merci'),ouvertA=0,basFond=false;
+  function ouvrir(){
+    form.hidden=false;merci.hidden=true;etat.textContent='';etat.classList.remove('erreur');ouvertA=Date.now();
+    if(!dlg.open){if(dlg.showModal)dlg.showModal();else dlg.setAttribute('open','')}
+    if(matchMedia('(pointer:fine)').matches)form.querySelector('input').focus();   // pas sur téléphone : le clavier cacherait le formulaire
+  }
+  function fermer(){if(dlg.close)dlg.close();else dlg.removeAttribute('open')}
+  document.querySelectorAll('[data-demande]').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();ouvrir()})});
+  dlg.querySelectorAll('[data-fermer]').forEach(function(b){b.addEventListener('click',fermer)});
+  dlg.addEventListener('mousedown',function(e){basFond=e.target===dlg});
+  dlg.addEventListener('click',function(e){if(basFond&&e.target===dlg)fermer()});   // clic sur le fond sombre
+  function parAdresse(){if(location.hash==='#demande')ouvrir()}
+  window.addEventListener('hashchange',parAdresse);parAdresse();
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var d={};new FormData(form).forEach(function(v,k){d[k]=String(v).trim()});
+    d.langue=document.documentElement.lang;d.page=location.href;d.duree=Date.now()-ouvertA;
+    envoyer.disabled=true;etat.classList.remove('erreur');etat.textContent=form.dataset.envoi;
+    fetch(form.dataset.adresse,{method:'POST',body:JSON.stringify(d)})
+      .then(function(r){return r.json()})
+      .then(function(r){if(!r.ok)throw r;form.reset();form.hidden=true;merci.hidden=false;merci.querySelector('[data-fermer]').focus()})
+      .catch(function(){etat.classList.add('erreur');etat.textContent=form.dataset.erreur})
+      .then(function(){envoyer.disabled=false});
+  });
 
   // film
   var film=document.getElementById('film'),fv=film.querySelector('video');
